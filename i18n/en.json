@@ -1,0 +1,63 @@
+{
+  "app_title": "GitLab Dashboard",
+  "btn_projects": "⚙️ Projects",
+
+  "cfg_title": "Settings",
+  "cfg_base_url": "GitLab Base URL",
+  "cfg_projects_section": "Projects",
+  "cfg_add_project": "+ Add project",
+  "cfg_project_name": "Project name",
+  "cfg_project_id": "Project ID",
+  "cfg_project_token": "Private Token",
+  "cfg_cancel": "Cancel",
+  "cfg_save": "Save",
+  "cfg_remove_title": "Remove",
+
+  "home_no_projects": "No projects configured",
+  "home_configure_now": "Configure now",
+  "home_title": "Projects",
+  "home_subtitle": "project(s)",
+  "home_refresh_all": "↺ Refresh all",
+  "home_last_pipeline": "Last pipeline",
+
+  "tab_commits": "Commits",
+  "tab_pipelines": "Pipelines",
+  "btn_refresh": "↺ Refresh",
+  "btn_back": "← Back",
+
+  "proj_id_label": "ID",
+
+  "pipeline_ref": "Branch / Ref",
+  "pipeline_duration": "Total duration",
+  "pipeline_started": "Started",
+  "pipeline_finished": "Finished",
+  "pipeline_jobs_count": "job(s) · by stage",
+  "pipeline_stage_jobs": "job(s)",
+
+  "time_created": "🕐 Created",
+  "time_updated": "🔄 Updated",
+
+  "job_log_btn": "📄 Log",
+  "job_run_again": "▶ Run again",
+  "job_running": "⏳ Running...",
+  "job_starting": "⏳ Starting...",
+  "job_no_retry": "Status does not allow retry",
+  "job_retry_title": "Run again",
+
+  "log_placeholder": "Click \"Log\" to load...",
+  "log_loading": "Loading log...",
+  "log_reloading": "Reloading final log...",
+  "log_restarted": "Job restarted, waiting for log...",
+
+  "loading": "Loading...",
+  "updating": "⏳ Updating...",
+  "no_commits": "No commits found",
+  "no_pipelines": "No pipelines found",
+  "btn_update": "↺ Refresh",
+  "btn_retry_load": "↺ Try again",
+  "error_prefix": "Error",
+  "error_retry_job": "Failed to restart job",
+
+  "detail_loading": "Loading details...",
+  "detail_refresh": "↺ Refresh"
+}

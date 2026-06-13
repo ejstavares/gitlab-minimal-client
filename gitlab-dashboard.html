@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitLab Dashboard</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #0d1117;
+  color: #e6edf3;
+  min-height: 100vh;
+}
+
+/* ── Header ── */
+header {
+  background: #161b22;
+  border-bottom: 1px solid #30363d;
+  padding: 0 24px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+.header-logo { color: #fc6d26; flex-shrink: 0; }
+.breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 14px; }
+.breadcrumb-home { color: #e6edf3; font-weight: 600; cursor: pointer; }
+.breadcrumb-home:hover { color: #fc6d26; }
+.breadcrumb-sep { color: #484f58; }
+.breadcrumb-project { color: #8b949e; font-weight: 500; }
+.header-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+/* ── Buttons ── */
+.btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  border: none;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.btn-primary { background: #fc6d26; color: #fff; }
+.btn-primary:hover { background: #e8621f; }
+.btn-ghost { background: #21262d; border: 1px solid #30363d; color: #e6edf3; }
+.btn-ghost:hover { background: #30363d; }
+.btn-danger { background: transparent; border: 1px solid #f85149; color: #f85149; }
+.btn-danger:hover { background: #3a1f1f; }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* ── Modal ── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.65); z-index: 100;
+  align-items: flex-start; justify-content: center;
+  padding-top: 60px; overflow-y: auto;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 10px;
+  padding: 24px;
+  width: 580px;
+  max-width: 96vw;
+  margin-bottom: 40px;
+}
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.modal-header h2 { font-size: 16px; }
+.modal-close { background: none; border: none; color: #8b949e; cursor: pointer; font-size: 18px; padding: 2px 6px; }
+.modal-close:hover { color: #e6edf3; }
+
+.field { margin-bottom: 14px; }
+label { display: block; font-size: 12px; color: #8b949e; margin-bottom: 4px; }
+input[type=text], input[type=password], input[type=url] {
+  width: 100%;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  color: #e6edf3;
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+input:focus { outline: none; border-color: #fc6d26; }
+
+.section-divider {
+  font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
+  color: #8b949e; margin: 18px 0 10px;
+  padding-bottom: 6px; border-bottom: 1px solid #30363d;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+/* Project list in config */
+.config-project-list { display: flex; flex-direction: column; gap: 8px; }
+
+.config-project-item {
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 12px;
+}
+.config-project-row { display: grid; grid-template-columns: 1fr 120px 1fr auto; gap: 8px; align-items: end; }
+.config-project-remove {
+  background: none; border: 1px solid #30363d; color: #8b949e;
+  border-radius: 6px; cursor: pointer; padding: 6px 9px; font-size: 14px;
+  height: 32px; align-self: end;
+}
+.config-project-remove:hover { border-color: #f85149; color: #f85149; }
+
+.modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #30363d; }
+
+/* ── Home screen ── */
+.screen { display: none; }
+.screen.active { display: block; }
+
+.main { padding: 28px 28px; max-width: 1100px; margin: 0 auto; }
+
+.home-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+}
+.home-title { font-size: 20px; font-weight: 600; }
+.home-subtitle { font-size: 13px; color: #8b949e; margin-top: 2px; }
+
+.projects-list { display: flex; flex-direction: column; gap: 10px; }
+
+.project-list-card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 10px;
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.project-list-card:hover { border-color: #fc6d26; background: #1c2128; }
+
+.project-avatar {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, #fc6d26, #e8421f);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700; color: #fff;
+  flex-shrink: 0;
+}
+
+.project-list-info { flex: 1; min-width: 0; }
+.project-list-name { font-size: 15px; font-weight: 600; }
+.project-list-id { font-size: 11px; color: #8b949e; margin-top: 1px; }
+
+.project-list-meta { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.project-last-pipeline { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.pipeline-label { font-size: 11px; color: #8b949e; }
+
+.chevron { color: #484f58; font-size: 18px; flex-shrink: 0; }
+
+/* status badges */
+.badge {
+  font-size: 11px; padding: 2px 9px; border-radius: 20px; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.badge-success  { background: #1f3a1f; color: #3fb950; }
+.badge-failed   { background: #3a1f1f; color: #f85149; }
+.badge-running  { background: #1f2d3a; color: #58a6ff; }
+.badge-pending  { background: #2d2a1f; color: #d29922; }
+.badge-canceled { background: #21262d; color: #8b949e; }
+.badge-skipped  { background: #21262d; color: #8b949e; }
+
+.project-header-status {
+  font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600;
+}
+.status-ok      { background: #1f3a1f; color: #3fb950; }
+.status-fail    { background: #3a1f1f; color: #f85149; }
+.status-running { background: #1f2d3a; color: #58a6ff; }
+.status-unknown { background: #21262d; color: #8b949e; }
+
+/* ── Project screen ── */
+.project-screen-header {
+  background: #161b22;
+  border-bottom: 1px solid #30363d;
+  padding: 16px 28px;
+  display: flex; align-items: center; gap: 14px;
+}
+.project-screen-avatar {
+  width: 44px; height: 44px; border-radius: 8px;
+  background: linear-gradient(135deg, #fc6d26, #e8421f);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.project-screen-name { font-size: 17px; font-weight: 600; }
+.project-screen-id   { font-size: 12px; color: #8b949e; margin-top: 2px; }
+.project-screen-actions { margin-left: auto; display: flex; gap: 8px; }
+
+.tabs-bar {
+  display: flex; gap: 0;
+  border-bottom: 1px solid #30363d;
+  padding: 0 28px;
+  background: #161b22;
+}
+.tab {
+  padding: 11px 16px; font-size: 13px; cursor: pointer;
+  color: #8b949e; border-bottom: 2px solid transparent;
+  margin-bottom: -1px; font-weight: 500;
+}
+.tab:hover { color: #e6edf3; }
+.tab.active { color: #e6edf3; border-bottom-color: #fc6d26; }
+
+.tab-pane { display: none; padding: 20px 28px; }
+.tab-pane.active { display: block; }
+
+/* ── Commits ── */
+.commit-item {
+  background: #161b22; border: 1px solid #30363d; border-radius: 8px;
+  padding: 12px 16px; margin-bottom: 8px;
+}
+.commit-top { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.commit-sha {
+  font-family: monospace; font-size: 11px;
+  color: #58a6ff; background: #1f2d3a; padding: 2px 7px; border-radius: 4px;
+}
+.commit-branch {
+  font-size: 11px; color: #8b949e; background: #21262d;
+  padding: 2px 7px; border-radius: 4px;
+}
+.commit-msg { font-size: 13px; font-weight: 500; margin-bottom: 3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.commit-meta { font-size: 11px; color: #8b949e; }
+
+/* ── Pipelines ── */
+.pipeline-item {
+  background: #161b22; border: 1px solid #30363d; border-radius: 8px;
+  padding: 13px 16px; margin-bottom: 8px; cursor: pointer;
+  transition: border-color .15s;
+}
+.pipeline-item:hover { border-color: #fc6d26; }
+.pipeline-row { display: flex; align-items: center; gap: 10px; }
+.pipeline-id { font-size: 12px; color: #8b949e; font-family: monospace; min-width: 58px; }
+.pipeline-ref {
+  font-size: 11px; background: #1f2d3a; color: #58a6ff;
+  padding: 2px 8px; border-radius: 20px;
+}
+.pipeline-sha { font-size: 11px; font-family: monospace; color: #8b949e; }
+.pipeline-time { margin-left: auto; font-size: 11px; color: #8b949e; }
+.pipeline-times { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.pipeline-time-row { font-size: 11px; color: #8b949e; }
+.pipeline-time-updated { color: #58a6ff; }
+
+/* ── Pipeline detail panel ── */
+.overlay-bg {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.35); z-index: 49;
+}
+.overlay-bg.open { display: block; }
+
+.detail-panel {
+  display: none; position: fixed; top: 0; right: 0;
+  width: 720px; max-width: 96vw; height: 100vh;
+  background: #161b22; border-left: 1px solid #30363d;
+  z-index: 50; flex-direction: column; overflow: hidden;
+}
+.detail-panel.open { display: flex; }
+
+.detail-header {
+  background: #21262d; padding: 14px 20px;
+  border-bottom: 1px solid #30363d;
+  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+}
+.detail-title { font-size: 14px; font-weight: 600; }
+.detail-close {
+  background: none; border: none; color: #8b949e;
+  cursor: pointer; font-size: 18px; padding: 2px 6px;
+}
+.detail-close:hover { color: #e6edf3; }
+
+.detail-body { flex: 1; overflow-y: auto; padding: 20px; }
+
+/* ── Jobs ── */
+.pipeline-info-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;
+}
+.info-box { background: #0d1117; border: 1px solid #21262d; border-radius: 6px; padding: 10px 14px; }
+.info-box .info-label { font-size: 11px; color: #8b949e; margin-bottom: 2px; }
+.info-box .info-value { font-size: 13px; font-weight: 500; }
+
+.stage-header {
+  font-size: 11px; color: #8b949e; text-transform: uppercase;
+  letter-spacing: .06em; padding: 6px 0;
+  border-bottom: 1px solid #21262d; margin-bottom: 4px;
+  display: flex; align-items: center; gap: 8px;
+}
+.stage-count {
+  font-size: 10px; background: #21262d; padding: 1px 7px;
+  border-radius: 20px; text-transform: none; letter-spacing: 0;
+}
+
+.job-item {
+  background: #0d1117; border: 1px solid #21262d;
+  border-radius: 6px; overflow: hidden; margin-bottom: 5px;
+}
+.job-item.job-retried { opacity: .72; }
+
+.job-header {
+  display: flex; align-items: center; gap: 8px; padding: 9px 12px;
+}
+.job-header:hover { background: #0f1419; cursor: default; }
+
+.job-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.job-name  { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.job-id-tag { font-size: 11px; color: #8b949e; font-family: monospace; margin-top: 1px; }
+.retried-tag {
+  background: #2d2a1f; color: #d29922;
+  padding: 1px 5px; border-radius: 3px;
+  font-style: italic; font-family: sans-serif;
+}
+.job-duration { font-size: 11px; color: #8b949e; min-width: 48px; text-align: right; }
+.job-time     { font-size: 11px; color: #8b949e; min-width: 72px; text-align: right; }
+
+.job-expand-btn, .job-retry-btn {
+  background: none; border: 1px solid #30363d; color: #8b949e;
+  font-size: 11px; padding: 3px 8px; border-radius: 4px; cursor: pointer;
+  white-space: nowrap;
+}
+.job-expand-btn:hover { border-color: #58a6ff; color: #58a6ff; }
+.job-retry-btn:hover  { border-color: #3fb950; color: #3fb950; }
+.job-retry-btn:disabled { opacity: .4; cursor: not-allowed; }
+.job-retry-btn.retrying { border-color: #fc6d26; color: #fc6d26; }
+
+.job-log {
+  display: none; background: #0a0e13;
+  border-top: 1px solid #21262d;
+  padding: 12px 14px;
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 11.5px; line-height: 1.65; color: #e6edf3;
+  white-space: pre-wrap; word-break: break-all;
+  max-height: 420px; overflow-y: auto;
+}
+.job-log.open { display: block; }
+.log-loading  { color: #8b949e; font-style: italic; }
+
+/* ANSI */
+.ansi-red     { color: #f85149; } .ansi-green { color: #3fb950; }
+.ansi-yellow  { color: #d29922; } .ansi-blue  { color: #58a6ff; }
+.ansi-magenta { color: #bc8cff; } .ansi-cyan  { color: #39c5cf; }
+.ansi-bold    { font-weight: 700; } .ansi-dim  { color: #8b949e; }
+
+/* ── Utilities ── */
+.empty-state {
+  text-align: center; padding: 48px 20px;
+  color: #8b949e; font-size: 13px;
+}
+.empty-state .icon { font-size: 36px; margin-bottom: 10px; }
+
+.load-more-btn {
+  width: 100%; padding: 9px; margin-top: 8px;
+  background: #21262d; border: 1px dashed #30363d;
+  color: #8b949e; border-radius: 6px; cursor: pointer; font-size: 12px;
+}
+.load-more-btn:hover { border-color: #fc6d26; color: #fc6d26; }
+
+.section-label {
+  font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
+  color: #8b949e; margin-bottom: 10px;
+}
+
+.spinner {
+  display: inline-block; width: 14px; height: 14px;
+  border: 2px solid #30363d; border-top-color: #fc6d26;
+  border-radius: 50%; animation: spin .7s linear infinite;
+  vertical-align: middle; margin-right: 5px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<header>
+  <svg class="header-logo" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M22.65 14.39L12 22.13 1.35 14.39a.84.84 0 0 1-.3-.94l1.22-3.78 2.44-7.51A.42.42 0 0 1 4.82 2a.43.43 0 0 1 .58 0 .42.42 0 0 1 .11.18l2.44 7.49h8.1l2.44-7.51A.42.42 0 0 1 18.6 2a.43.43 0 0 1 .58 0 .42.42 0 0 1 .11.18l2.44 7.51L23 13.45a.84.84 0 0 1-.35.94z"/>
+  </svg>
+  <div class="breadcrumb">
+    <span class="breadcrumb-home" onclick="goHome()">GitLab Dashboard</span>
+    <span class="breadcrumb-sep" id="breadSep" style="display:none">/</span>
+    <span class="breadcrumb-project" id="breadProject"></span>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-ghost btn-sm" onclick="openConfig()">⚙️ Projetos</button>
+  </div>
+</header>
+
+<!-- ═══════════════ CONFIG MODAL ═══════════════ -->
+<div class="modal-overlay" id="configModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>⚙️ Configuração</h2>
+      <button class="modal-close" onclick="closeConfig()">✕</button>
+    </div>
+
+    <div class="field">
+      <label>GitLab Base URL</label>
+      <input type="url" id="cfgUrl" placeholder="https://gitlab.com">
+    </div>
+
+    <div class="section-divider">
+      Projetos
+      <button class="btn btn-primary btn-sm" onclick="addProjectRow()">+ Adicionar projeto</button>
+    </div>
+
+    <div class="config-project-list" id="cfgProjectList"></div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeConfig()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveConfig()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ HOME SCREEN ═══════════════ -->
+<div class="screen active" id="screenHome">
+  <div class="main">
+    <div id="homeEmpty" class="empty-state" style="margin-top:40px">
+      <div class="icon">🔧</div>
+      <div>Nenhum projeto configurado</div>
+      <button class="btn btn-primary" style="margin-top:14px" onclick="openConfig()">Configurar agora</button>
+    </div>
+    <div id="homeContent" style="display:none">
+      <div class="home-header">
+        <div>
+          <div class="home-title">Projetos</div>
+          <div class="home-subtitle" id="homeSubtitle"></div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="refreshHome()">↺ Atualizar todos</button>
+      </div>
+      <div class="projects-list" id="projectsList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PROJECT SCREEN ═══════════════ -->
+<div class="screen" id="screenProject">
+  <div class="project-screen-header">
+    <div class="project-screen-avatar" id="projAvatar"></div>
+    <div>
+      <div class="project-screen-name" id="projName"></div>
+      <div class="project-screen-id" id="projMeta"></div>
+    </div>
+    <div class="project-screen-actions">
+      <span class="project-header-status status-unknown" id="projStatusBadge">—</span>
+      <button class="btn btn-ghost btn-sm" onclick="refreshProject()">↺ Refresh</button>
+      <button class="btn btn-ghost btn-sm" onclick="goHome()">← Voltar</button>
+    </div>
+  </div>
+
+  <div class="tabs-bar">
+    <div class="tab active" onclick="switchProjTab('commits', this)">Commits</div>
+    <div class="tab" onclick="switchProjTab('pipelines', this)">Pipelines</div>
+  </div>
+
+  <div class="tab-pane active" id="pane_commits">
+    <div class="empty-state"><span class="spinner"></span> Carregando...</div>
+  </div>
+  <div class="tab-pane" id="pane_pipelines">
+    <div class="empty-state"><span class="spinner"></span> Carregando...</div>
+  </div>
+</div>
+
+<!-- ═══════════════ PIPELINE DETAIL PANEL ═══════════════ -->
+<div class="overlay-bg" id="overlayBg" onclick="closeDetail()"></div>
+<div class="detail-panel" id="detailPanel">
+  <div class="detail-header">
+    <span>🔀</span>
+    <span class="detail-title" id="detailTitle">Pipeline</span>
+    <span id="detailBadge"></span>
+    <button class="btn btn-ghost btn-sm" id="detailRefreshBtn" onclick="refreshDetail()" style="margin-left:auto;margin-right:6px">↺ Refresh</button>
+    <button class="detail-close" onclick="closeDetail()">✕</button>
+  </div>
+  <div class="detail-body" id="detailBody"></div>
+</div>
+
+<!-- ═══════════════ SCRIPT ═══════════════ -->
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+let config        = { url: 'https://gitlab.com', projects: [] };
+let currentProjIdx = null;   // index in config.projects
+let currentDetail  = null;   // { projIdx, pipelineId }
+let jobPollers     = {};
+
+// ── Config persistence ────────────────────────────────────────────────────────
+function loadConfig() {
+  try { const s = localStorage.getItem('gl_cfg_v2'); if (s) config = JSON.parse(s); } catch {}
+}
+function saveConfigToStorage() {
+  localStorage.setItem('gl_cfg_v2', JSON.stringify(config));
+}
+
+// ── Config modal ──────────────────────────────────────────────────────────────
+function openConfig() {
+  loadConfig();
+  document.getElementById('cfgUrl').value = config.url || 'https://gitlab.com';
+  const list = document.getElementById('cfgProjectList');
+  list.innerHTML = '';
+  (config.projects || []).forEach(p => addProjectRow(p));
+  document.getElementById('configModal').classList.add('open');
+}
+
+function closeConfig() {
+  document.getElementById('configModal').classList.remove('open');
+}
+
+let rowIdx = 0;
+function addProjectRow(p = {}) {
+  const id = rowIdx++;
+  const row = document.createElement('div');
+  row.className = 'config-project-item';
+  row.id = `cfgRow_${id}`;
+  row.innerHTML = `
+    <div class="config-project-row">
+      <div>
+        <label>Nome do projeto</label>
+        <input type="text" placeholder="meu-projeto" value="${escHtml(p.name || '')}">
+      </div>
+      <div>
+        <label>Project ID</label>
+        <input type="text" placeholder="123456" value="${escHtml(p.id || '')}">
+      </div>
+      <div>
+        <label>Private Token</label>
+        <input type="password" placeholder="glpat-xxxx" value="${escHtml(p.token || '')}">
+      </div>
+      <button class="config-project-remove" onclick="removeProjectRow('cfgRow_${id}')" title="Remover">✕</button>
+    </div>
+  `;
+  document.getElementById('cfgProjectList').appendChild(row);
+}
+
+function removeProjectRow(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+function saveConfig() {
+  const url = document.getElementById('cfgUrl').value.replace(/\/$/, '').trim();
+  const rows = document.querySelectorAll('.config-project-item');
+  const projects = [];
+
+  rows.forEach(row => {
+    const inputs = row.querySelectorAll('input');
+    const name  = inputs[0].value.trim();
+    const pid   = inputs[1].value.trim();
+    const token = inputs[2].value.trim();
+    if (name && pid && token) projects.push({ name, id: pid, token });
+  });
+
+  config = { url, projects };
+  saveConfigToStorage();
+  closeConfig();
+  initHome();
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goHome() {
+  stopAllPollers();
+  currentProjIdx = null;
+  currentDetail  = null;
+  document.getElementById('breadSep').style.display     = 'none';
+  document.getElementById('breadProject').textContent   = '';
+  showScreen('screenHome');
+  closeDetail();
+}
+
+function openProject(idx) {
+  currentProjIdx = idx;
+  const proj = config.projects[idx];
+  document.getElementById('breadSep').style.display   = '';
+  document.getElementById('breadProject').textContent = proj.name;
+  document.getElementById('projAvatar').textContent   = proj.name[0].toUpperCase();
+  document.getElementById('projName').textContent     = proj.name;
+  document.getElementById('projMeta').textContent     = `ID: ${proj.id} · ${config.url}`;
+  document.getElementById('projStatusBadge').className     = 'project-header-status status-unknown';
+  document.getElementById('projStatusBadge').textContent   = '—';
+
+  // Reset tabs
+  switchProjTab('commits', document.querySelector('#screenProject .tabs-bar .tab'));
+  document.getElementById('pane_commits').innerHTML   = '<div class="empty-state"><span class="spinner"></span> Carregando...</div>';
+  document.getElementById('pane_pipelines').innerHTML = '<div class="empty-state"><span class="spinner"></span> Carregando...</div>';
+
+  showScreen('screenProject');
+  loadProjectCommits(idx);
+  loadProjectPipelines(idx);
+}
+
+function switchProjTab(name, el) {
+  document.querySelectorAll('#screenProject .tab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById(`pane_${name}`).classList.add('active');
+  document.querySelectorAll('#screenProject .tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
+function refreshProject() {
+  if (currentProjIdx === null) return;
+  loadProjectCommits(currentProjIdx);
+  loadProjectPipelines(currentProjIdx);
+}
+
+// ── Home ──────────────────────────────────────────────────────────────────────
+function initHome() {
+  loadConfig();
+  if (!config.projects || !config.projects.length) {
+    document.getElementById('homeEmpty').style.display   = 'block';
+    document.getElementById('homeContent').style.display = 'none';
+    return;
+  }
+  document.getElementById('homeEmpty').style.display   = 'none';
+  document.getElementById('homeContent').style.display = 'block';
+  document.getElementById('homeSubtitle').textContent  = `${config.projects.length} projeto(s) · ${config.url}`;
+
+  const list = document.getElementById('projectsList');
+  list.innerHTML = config.projects.map((p, i) => `
+    <div class="project-list-card" onclick="openProject(${i})">
+      <div class="project-avatar">${p.name[0].toUpperCase()}</div>
+      <div class="project-list-info">
+        <div class="project-list-name">${escHtml(p.name)}</div>
+        <div class="project-list-id">ID: ${escHtml(p.id)}</div>
+      </div>
+      <div class="project-list-meta">
+        <div class="project-last-pipeline">
+          <span class="pipeline-label">Último pipeline</span>
+          <span id="homeStatus_${i}" class="badge badge-canceled">...</span>
+        </div>
+        <div id="homeTime_${i}" style="font-size:11px;color:#8b949e"></div>
+      </div>
+      <div class="chevron">›</div>
+    </div>
+  `).join('');
+
+  config.projects.forEach((_, i) => loadHomePipelineStatus(i));
+}
+
+async function loadHomePipelineStatus(idx) {
+  try {
+    const pipelines = await glFetch(idx, '/pipelines', { per_page: 1 });
+    if (!pipelines.length) return;
+    const p  = pipelines[0];
+    const el = document.getElementById(`homeStatus_${idx}`);
+    const te = document.getElementById(`homeTime_${idx}`);
+    if (el) { el.className = badgeCls(p.status); el.textContent = p.status; }
+    if (te) {
+      const createdStr = relTime(p.created_at);
+      const updatedStr = p.updated_at ? relTime(p.updated_at) : null;
+      const showUpdated = updatedStr && updatedStr !== createdStr;
+      te.innerHTML = `<span>🕐 ${createdStr}</span>`
+        + (showUpdated ? `<br><span style="color:#58a6ff">🔄 ${updatedStr}</span>` : '');
+    }
+  } catch {}
+}
+
+function refreshHome() {
+  config.projects.forEach((_, i) => loadHomePipelineStatus(i));
+}
+
+// ── GitLab API ────────────────────────────────────────────────────────────────
+async function glFetch(projIdx, path, params = {}) {
+  const proj  = config.projects[projIdx];
+  const base  = config.url || 'https://gitlab.com';
+  const qs    = new URLSearchParams({ per_page: 20, ...params }).toString();
+  const url   = `${base}/api/v4/projects/${proj.id}${path}?${qs}`;
+  const res   = await fetch(url, { headers: { 'PRIVATE-TOKEN': proj.token } });
+  if (!res.ok) throw new Error(`HTTP ${res.status} – ${res.statusText}`);
+  return res.json();
+}
+
+async function glPost(projIdx, path) {
+  const proj = config.projects[projIdx];
+  const base = config.url || 'https://gitlab.com';
+  const res  = await fetch(`${base}/api/v4/projects/${proj.id}${path}`, {
+    method: 'POST', headers: { 'PRIVATE-TOKEN': proj.token }
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status} – ${res.statusText}`);
+  return res.json();
+}
+
+async function glFetchRaw(projIdx, path) {
+  const proj = config.projects[projIdx];
+  const base = config.url || 'https://gitlab.com';
+  const res  = await fetch(`${base}/api/v4/projects/${proj.id}${path}`, {
+    headers: { 'PRIVATE-TOKEN': proj.token }
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.text();
+}
+
+// ── Commits ───────────────────────────────────────────────────────────────────
+async function loadProjectCommits(idx, btn) {
+  const el = document.getElementById('pane_commits');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Atualizando...'; }
+  else     { el.innerHTML = '<div class="empty-state"><span class="spinner"></span> Carregando...</div>'; }
+
+  try {
+    const commits = await glFetch(idx, '/repository/commits', { per_page: 10 });
+    if (!commits.length) { el.innerHTML = '<div class="empty-state">Nenhum commit encontrado</div>'; return; }
+
+    el.innerHTML = commits.map(c => `
+      <div class="commit-item">
+        <div class="commit-top">
+          <span class="commit-sha">${c.short_id}</span>
+          <span class="commit-branch">${escHtml(c.refs || '')}</span>
+        </div>
+        <div class="commit-msg" title="${escHtml(c.title)}">${escHtml(c.title)}</div>
+        <div class="commit-meta">${escHtml(c.author_name)} · ${relTime(c.created_at)}</div>
+      </div>
+    `).join('') + `<button class="load-more-btn" onclick="loadProjectCommits(${idx}, this)">↺ Atualizar</button>`;
+
+  } catch(e) {
+    el.innerHTML = `<div class="empty-state" style="color:#f85149">Erro: ${escHtml(e.message)}</div>
+      <button class="load-more-btn" onclick="loadProjectCommits(${idx}, this)">↺ Tentar novamente</button>`;
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '↺ Atualizar'; }
+  }
+}
+
+// ── Pipelines ─────────────────────────────────────────────────────────────────
+async function loadProjectPipelines(idx, btn) {
+  const el = document.getElementById('pane_pipelines');
+  const statusEl = document.getElementById('projStatusBadge');
+
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Atualizando...'; }
+
+  try {
+    const pipelines = await glFetch(idx, '/pipelines', { per_page: 10 });
+    if (!pipelines.length) { el.innerHTML = '<div class="empty-state">Nenhum pipeline encontrado</div>'; return; }
+
+    const latest = pipelines[0];
+    const sMap = { success:'status-ok', failed:'status-fail', running:'status-running' };
+    statusEl.className   = `project-header-status ${sMap[latest.status] || 'status-unknown'}`;
+    statusEl.textContent = latest.status;
+
+    // Also update home card if visible
+    const hEl = document.getElementById(`homeStatus_${idx}`);
+    if (hEl) { hEl.className = badgeCls(latest.status); hEl.textContent = latest.status; }
+
+    el.innerHTML = pipelines.map(p => {
+      const createdStr = relTime(p.created_at);
+      const updatedStr = p.updated_at ? relTime(p.updated_at) : null;
+      const showUpdated = updatedStr && updatedStr !== createdStr;
+      return `
+      <div class="pipeline-item" onclick="openPipelineDetail(${idx}, ${p.id})">
+        <div class="pipeline-row">
+          <span class="pipeline-id">#${p.id}</span>
+          <span class="${badgeCls(p.status)}">${p.status}</span>
+          <span class="pipeline-ref">${escHtml(p.ref)}</span>
+          <span class="pipeline-sha">${escHtml(p.sha ? p.sha.slice(0,8) : '')}</span>
+          <div class="pipeline-times">
+            <span class="pipeline-time-row">🕐 Criado: ${createdStr}</span>
+            ${showUpdated ? `<span class="pipeline-time-row pipeline-time-updated">🔄 Atualizado: ${updatedStr}</span>` : ''}
+          </div>
+        </div>
+      </div>
+    `}).join('') + `<button class="load-more-btn" onclick="loadProjectPipelines(${idx}, this)">↺ Atualizar</button>`;
+
+  } catch(e) {
+    if (!btn) el.innerHTML = `<div class="empty-state" style="color:#f85149">Erro: ${escHtml(e.message)}</div>
+      <button class="load-more-btn" onclick="loadProjectPipelines(${idx}, this)">↺ Tentar novamente</button>`;
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '↺ Atualizar'; }
+  }
+}
+
+// ── Pipeline detail ───────────────────────────────────────────────────────────
+function refreshDetail() {
+  if (!currentDetail) return;
+  const btn = document.getElementById('detailRefreshBtn');
+  btn.disabled = true; btn.textContent = '⏳ ...';
+  openPipelineDetail(currentDetail.projIdx, currentDetail.pipelineId)
+    .finally(() => { btn.disabled = false; btn.textContent = '↺ Refresh'; });
+}
+
+async function openPipelineDetail(projIdx, pipelineId) {
+  currentDetail = { projIdx, pipelineId };
+  stopAllPollers();
+
+  document.getElementById('detailTitle').textContent = `Pipeline #${pipelineId}`;
+  document.getElementById('detailBadge').innerHTML   = '';
+  document.getElementById('detailBody').innerHTML    = `<div class="empty-state"><span class="spinner"></span> Carregando...</div>`;
+  document.getElementById('detailPanel').classList.add('open');
+  document.getElementById('overlayBg').classList.add('open');
+
+  try {
+    const [pipeline, jobs] = await Promise.all([
+      glFetch(projIdx, `/pipelines/${pipelineId}`),
+      glFetch(projIdx, `/pipelines/${pipelineId}/jobs`, { per_page: 100, include_retried: true }),
+    ]);
+
+    document.getElementById('detailBadge').innerHTML =
+      `<span class="${badgeCls(pipeline.status)}">${pipeline.status}</span>`;
+
+    const duration = pipeline.duration ? formatDuration(pipeline.duration) : '—';
+
+    // Preserve stage order
+    const stageOrder = [];
+    jobs.forEach(j => { if (!stageOrder.includes(j.stage)) stageOrder.push(j.stage); });
+
+    let html = `
+      <div class="pipeline-info-grid">
+        <div class="info-box"><div class="info-label">Branch / Ref</div><div class="info-value">${escHtml(pipeline.ref)}</div></div>
+        <div class="info-box"><div class="info-label">Duração total</div><div class="info-value">${duration}</div></div>
+        <div class="info-box"><div class="info-label">Iniciado</div><div class="info-value">${fmtDate(pipeline.created_at)}</div></div>
+        <div class="info-box"><div class="info-label">Finalizado</div><div class="info-value">${pipeline.finished_at ? fmtDate(pipeline.finished_at) : '—'}</div></div>
+      </div>
+      <div class="section-label">${jobs.length} job(s) · por stage</div>
+    `;
+
+    stageOrder.forEach(stage => {
+      const sJobs = jobs.filter(j => j.stage === stage);
+      html += `
+        <div style="margin-bottom:16px">
+          <div class="stage-header">
+            ${escHtml(stage)}
+            <span class="stage-count">${sJobs.length} job(s)</span>
+          </div>
+      `;
+      sJobs.forEach(job => {
+        const canRetry = ['failed','canceled','success','skipped'].includes(job.status);
+        const isRetried = job.retried === true;
+        html += `
+          <div class="job-item${isRetried ? ' job-retried' : ''}" id="job_${job.id}">
+            <div class="job-header">
+              <span class="${badgeCls(job.status)}" id="badge_${job.id}">${job.status}</span>
+              <div class="job-info">
+                <span class="job-name">${escHtml(job.name)}</span>
+                <span class="job-id-tag">#${job.id}${isRetried ? ' <span class="retried-tag">retried</span>' : ''}</span>
+              </div>
+              <span class="job-duration">${job.duration ? formatDuration(job.duration) : '—'}</span>
+              <span class="job-time">${relTime(job.created_at)}</span>
+              <button class="job-expand-btn" onclick="toggleLog(${projIdx}, ${job.id})">📄 Log</button>
+              <button class="job-retry-btn" id="retry_${job.id}"
+                onclick="retryJob(event, ${projIdx}, ${job.id})"
+                ${canRetry ? '' : 'disabled'}
+                title="${canRetry ? 'Executar novamente' : 'Status não permite retry'}"
+              >▶ Run again</button>
+            </div>
+            <pre class="job-log" id="log_${job.id}"><span class="log-loading">Clique em "Log" para carregar...</span></pre>
+          </div>
+        `;
+      });
+      html += `</div>`;
+    });
+
+    document.getElementById('detailBody').innerHTML = html;
+
+  } catch(e) {
+    document.getElementById('detailBody').innerHTML =
+      `<div class="empty-state" style="color:#f85149">Erro: ${escHtml(e.message)}</div>`;
+  }
+}
+
+function closeDetail() {
+  stopAllPollers();
+  currentDetail = null;
+  document.getElementById('detailPanel').classList.remove('open');
+  document.getElementById('overlayBg').classList.remove('open');
+}
+
+// ── Log ───────────────────────────────────────────────────────────────────────
+let loadedLogs = new Set();
+
+async function toggleLog(projIdx, jobId) {
+  const logEl  = document.getElementById(`log_${jobId}`);
+  const isOpen = logEl.classList.contains('open');
+  if (isOpen) { logEl.classList.remove('open'); return; }
+
+  logEl.classList.add('open');
+  if (!loadedLogs.has(jobId)) {
+    logEl.innerHTML = `<span class="log-loading"><span class="spinner"></span> Carregando log...</span>`;
+    try {
+      const raw = await glFetchRaw(projIdx, `/jobs/${jobId}/trace`);
+      logEl.innerHTML = ansiToHtml(raw);
+      loadedLogs.add(jobId);
+    } catch(e) {
+      logEl.innerHTML = `<span style="color:#f85149">Erro: ${escHtml(e.message)}</span>`;
+    }
+  }
+}
+
+// ── Retry & polling ───────────────────────────────────────────────────────────
+function stopAllPollers() {
+  Object.values(jobPollers).forEach(clearInterval);
+  jobPollers = {};
+}
+
+function startJobPoller(projIdx, jobId) {
+  stopJobPoller(jobId);
+  const ACTIVE = ['running','pending','created','waiting_for_resource','preparing'];
+
+  jobPollers[jobId] = setInterval(async () => {
+    try {
+      const job     = await glFetch(projIdx, `/jobs/${jobId}`);
+      const badgeEl = document.getElementById(`badge_${jobId}`);
+      const btn     = document.getElementById(`retry_${jobId}`);
+      if (!badgeEl) { stopJobPoller(jobId); return; }
+
+      badgeEl.className   = badgeCls(job.status);
+      badgeEl.textContent = job.status;
+
+      if (!ACTIVE.includes(job.status)) {
+        stopJobPoller(jobId);
+        if (btn) { btn.disabled = false; btn.textContent = '▶ Run again'; btn.style.cssText = ''; }
+
+        const logEl = document.getElementById(`log_${jobId}`);
+        if (logEl && logEl.classList.contains('open')) {
+          loadedLogs.delete(jobId);
+          logEl.innerHTML = `<span class="log-loading"><span class="spinner"></span> Recarregando log final...</span>`;
+          try {
+            const raw = await glFetchRaw(projIdx, `/jobs/${jobId}/trace`);
+            logEl.innerHTML = ansiToHtml(raw);
+            loadedLogs.add(jobId);
+          } catch {}
+        }
+        loadProjectPipelines(projIdx);
+      }
+    } catch {}
+  }, 4000);
+}
+
+function stopJobPoller(jobId) {
+  if (jobPollers[jobId]) { clearInterval(jobPollers[jobId]); delete jobPollers[jobId]; }
+}
+
+async function retryJob(event, projIdx, jobId) {
+  event.stopPropagation();
+  const btn     = document.getElementById(`retry_${jobId}`);
+  const badgeEl = document.getElementById(`badge_${jobId}`);
+
+  btn.disabled = true;
+  btn.classList.add('retrying');
+  btn.textContent = '⏳ Iniciando...';
+
+  try {
+    const newJob = await glPost(projIdx, `/jobs/${jobId}/retry`);
+    badgeEl.className   = badgeCls(newJob.status);
+    badgeEl.textContent = newJob.status;
+    btn.classList.remove('retrying');
+    btn.textContent = '⏳ Running...';
+
+    loadedLogs.delete(jobId);
+    const logEl = document.getElementById(`log_${jobId}`);
+    if (logEl && logEl.classList.contains('open')) {
+      logEl.innerHTML = `<span class="log-loading"><span class="spinner"></span> Job reiniciado, aguardando log...</span>`;
+    }
+
+    startJobPoller(projIdx, jobId);
+    loadProjectPipelines(projIdx);
+
+  } catch(e) {
+    btn.disabled = false;
+    btn.classList.remove('retrying');
+    btn.textContent = '✗ Erro';
+    btn.style.borderColor = '#f85149';
+    btn.style.color = '#f85149';
+    alert(`Erro: ${e.message}`);
+    setTimeout(() => { btn.textContent = '▶ Run again'; btn.style.cssText = ''; }, 3000);
+  }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function badgeCls(status) {
+  const m = {
+    success:'badge badge-success', failed:'badge badge-failed',
+    running:'badge badge-running', pending:'badge badge-pending',
+    canceled:'badge badge-canceled', skipped:'badge badge-skipped',
+  };
+  return m[status] || 'badge badge-canceled';
+}
+
+function relTime(iso) {
+  if (!iso) return '—';
+  const diff = Date.now() - new Date(iso);
+  const m = Math.floor(diff / 60000);
+  if (m < 1)  return 'agora';
+  if (m < 60) return `${m}m atrás`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h atrás`;
+  return `${Math.floor(h/24)}d atrás`;
+}
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('pt-BR', {
+    day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'
+  });
+}
+
+function formatDuration(secs) {
+  if (!secs) return '—';
+  const m = Math.floor(secs / 60), s = Math.round(secs % 60);
+  return m > 0 ? `${m}m ${s}s` : `${s}s`;
+}
+
+function ansiToHtml(text) {
+  const e = escHtml(text);
+  return e
+    .replace(/\x1b\[0m/g,   '</span>')
+    .replace(/\x1b\[1m/g,   '<span class="ansi-bold">')
+    .replace(/\x1b\[2m/g,   '<span class="ansi-dim">')
+    .replace(/\x1b\[31m/g,  '<span class="ansi-red">')
+    .replace(/\x1b\[32m/g,  '<span class="ansi-green">')
+    .replace(/\x1b\[33m/g,  '<span class="ansi-yellow">')
+    .replace(/\x1b\[34m/g,  '<span class="ansi-blue">')
+    .replace(/\x1b\[35m/g,  '<span class="ansi-magenta">')
+    .replace(/\x1b\[36m/g,  '<span class="ansi-cyan">')
+    .replace(/\x1b\[0;32m/g,'<span class="ansi-green">')
+    .replace(/\x1b\[0;31m/g,'<span class="ansi-red">')
+    .replace(/\x1b\[0;33m/g,'<span class="ansi-yellow">')
+    .replace(/\x1b\[[0-9;]*m/g, '');
+}
+
+// ── Auto-refresh ──────────────────────────────────────────────────────────────
+setInterval(() => {
+  if (currentProjIdx !== null) loadProjectPipelines(currentProjIdx, null);
+  else refreshHome();
+}, 30000);
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+loadConfig();
+initHome();
+</script>
+</body>
+</html>
