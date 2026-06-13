@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GitLab Dashboard</title>
+<title>GitLab - Minimal Dashboard</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -301,6 +301,31 @@ input:focus { outline: none; border-color: #fc6d26; }
 }
 .load-more-btn:hover { border-color: #fc6d26; color: #fc6d26; }
 
+/* ── Token copy ── */
+.token-wrapper { display: flex; gap: 4px; }
+.token-wrapper input { flex: 1; min-width: 0; }
+.token-copy-btn {
+  background: none; border: 1px solid #30363d; color: #8b949e;
+  border-radius: 6px; cursor: pointer; padding: 0 9px; font-size: 14px;
+  height: 32px; flex-shrink: 0; transition: color .15s, border-color .15s;
+}
+.token-copy-btn:hover { border-color: #3fb950; color: #3fb950; }
+
+/* ── List info bar ── */
+.list-info-bar {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: #8b949e;
+  margin-bottom: 10px; padding: 7px 12px;
+  background: #0d1117; border: 1px solid #21262d; border-radius: 6px;
+}
+.perpage-input {
+  width: 50px; text-align: center;
+  background: #161b22; border: 1px solid #30363d;
+  color: #e6edf3; border-radius: 4px;
+  font-size: 12px; padding: 2px 4px;
+}
+.perpage-input:focus { outline: none; border-color: #fc6d26; }
+
 .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #8b949e; margin-bottom: 10px; }
 
 .spinner {
@@ -324,7 +349,7 @@ input:focus { outline: none; border-color: #fc6d26; }
     <path d="M22.65 14.39L12 22.13 1.35 14.39a.84.84 0 0 1-.3-.94l1.22-3.78 2.44-7.51A.42.42 0 0 1 4.82 2a.43.43 0 0 1 .58 0 .42.42 0 0 1 .11.18l2.44 7.49h8.1l2.44-7.51A.42.42 0 0 1 18.6 2a.43.43 0 0 1 .58 0 .42.42 0 0 1 .11.18l2.44 7.51L23 13.45a.84.84 0 0 1-.35.94z"/>
   </svg>
   <div class="breadcrumb">
-    <span class="breadcrumb-home" onclick="goHome()" data-i18n="app_title">GitLab Dashboard</span>
+    <span class="breadcrumb-home" onclick="goHome()" data-i18n="app_title">GitLab - Minimal Dashboard</span>
     <span class="breadcrumb-sep" id="breadSep" style="display:none">/</span>
     <span class="breadcrumb-project" id="breadProject"></span>
   </div>
@@ -427,7 +452,7 @@ let currentLang  = localStorage.getItem('gl_lang') || 'pt';
 // Fallback strings (embedded, work with file://)
 const FALLBACK = {
   pt: {
-    app_title:'GitLab Dashboard', btn_projects:'⚙️ Projetos',
+    app_title:'GitLab - Minimal Dashboard', btn_projects:'⚙️ Projetos',
     cfg_title:'Configuração', cfg_base_url:'GitLab Base URL',
     cfg_projects_section:'Projetos', cfg_add_project:'+ Adicionar projeto',
     cfg_project_name:'Nome do projeto', cfg_project_id:'Project ID',
@@ -452,9 +477,69 @@ const FALLBACK = {
     btn_update:'↺ Atualizar', btn_retry_load:'↺ Tentar novamente',
     error_prefix:'Erro', error_retry_job:'Erro ao reiniciar job',
     detail_loading:'Carregando detalhes...', detail_refresh:'↺ Refresh',
+    list_info_prefix:'Últimos', list_info_suffix:'registos carregados',
+    cfg_copy_token:'Copiar token',
+  },
+  fr: {
+    app_title:'GitLab - Minimal Dashboard', btn_projects:'⚙️ Projets',
+    cfg_title:'Configuration', cfg_base_url:'URL de base GitLab',
+    cfg_projects_section:'Projets', cfg_add_project:'+ Ajouter un projet',
+    cfg_project_name:'Nom du projet', cfg_project_id:'ID du projet',
+    cfg_project_token:'Jeton privé', cfg_cancel:'Annuler', cfg_save:'Enregistrer',
+    cfg_remove_title:'Supprimer',
+    home_no_projects:'Aucun projet configuré', home_configure_now:'Configurer maintenant',
+    home_title:'Projets', home_subtitle:'projet(s)', home_refresh_all:'↺ Actualiser tout',
+    home_last_pipeline:'Dernier pipeline',
+    tab_commits:'Commits', tab_pipelines:'Pipelines',
+    btn_refresh:'↺ Actualiser', btn_back:'← Retour', proj_id_label:'ID',
+    pipeline_ref:'Branche / Ref', pipeline_duration:'Durée totale',
+    pipeline_started:'Démarré', pipeline_finished:'Terminé',
+    pipeline_jobs_count:'job(s) · par étape', pipeline_stage_jobs:'job(s)',
+    time_created:'🕐 Créé', time_updated:'🔄 Mis à jour',
+    job_log_btn:'📄 Journal', job_run_again:'▶ Relancer', job_running:'⏳ En cours...',
+    job_starting:'⏳ Démarrage...', job_no_retry:'Le statut ne permet pas de relancer',
+    job_retry_title:'Relancer',
+    log_placeholder:'Cliquez sur "Journal" pour charger...', log_loading:'Chargement du journal...',
+    log_reloading:'Rechargement du journal final...', log_restarted:'Job relancé, en attente du journal...',
+    loading:'Chargement...', updating:'⏳ Actualisation...',
+    no_commits:'Aucun commit trouvé', no_pipelines:'Aucun pipeline trouvé',
+    btn_update:'↺ Actualiser', btn_retry_load:'↺ Réessayer',
+    error_prefix:'Erreur', error_retry_job:'Échec du redémarrage du job',
+    detail_loading:'Chargement des détails...', detail_refresh:'↺ Actualiser',
+    list_info_prefix:'Derniers', list_info_suffix:'enregistrements chargés',
+    cfg_copy_token:'Copier le jeton',
+  },
+  es: {
+    app_title:'GitLab - Minimal Dashboard', btn_projects:'⚙️ Proyectos',
+    cfg_title:'Configuración', cfg_base_url:'URL base de GitLab',
+    cfg_projects_section:'Proyectos', cfg_add_project:'+ Añadir proyecto',
+    cfg_project_name:'Nombre del proyecto', cfg_project_id:'ID del proyecto',
+    cfg_project_token:'Token privado', cfg_cancel:'Cancelar', cfg_save:'Guardar',
+    cfg_remove_title:'Eliminar',
+    home_no_projects:'Ningún proyecto configurado', home_configure_now:'Configurar ahora',
+    home_title:'Proyectos', home_subtitle:'proyecto(s)', home_refresh_all:'↺ Actualizar todos',
+    home_last_pipeline:'Último pipeline',
+    tab_commits:'Commits', tab_pipelines:'Pipelines',
+    btn_refresh:'↺ Actualizar', btn_back:'← Volver', proj_id_label:'ID',
+    pipeline_ref:'Rama / Ref', pipeline_duration:'Duración total',
+    pipeline_started:'Iniciado', pipeline_finished:'Finalizado',
+    pipeline_jobs_count:'job(s) · por etapa', pipeline_stage_jobs:'job(s)',
+    time_created:'🕐 Creado', time_updated:'🔄 Actualizado',
+    job_log_btn:'📄 Log', job_run_again:'▶ Ejecutar de nuevo', job_running:'⏳ Ejecutando...',
+    job_starting:'⏳ Iniciando...', job_no_retry:'El estado no permite reintentar',
+    job_retry_title:'Ejecutar de nuevo',
+    log_placeholder:'Haz clic en "Log" para cargar...', log_loading:'Cargando log...',
+    log_reloading:'Recargando log final...', log_restarted:'Job reiniciado, esperando log...',
+    loading:'Cargando...', updating:'⏳ Actualizando...',
+    no_commits:'No se encontraron commits', no_pipelines:'No se encontraron pipelines',
+    btn_update:'↺ Actualizar', btn_retry_load:'↺ Reintentar',
+    error_prefix:'Error', error_retry_job:'Error al reiniciar el job',
+    detail_loading:'Cargando detalles...', detail_refresh:'↺ Actualizar',
+    list_info_prefix:'Últimos', list_info_suffix:'registros cargados',
+    cfg_copy_token:'Copiar token',
   },
   en: {
-    app_title:'GitLab Dashboard', btn_projects:'⚙️ Projects',
+    app_title:'GitLab - Minimal Dashboard', btn_projects:'⚙️ Projects',
     cfg_title:'Settings', cfg_base_url:'GitLab Base URL',
     cfg_projects_section:'Projects', cfg_add_project:'+ Add project',
     cfg_project_name:'Project name', cfg_project_id:'Project ID',
@@ -479,6 +564,8 @@ const FALLBACK = {
     btn_update:'↺ Refresh', btn_retry_load:'↺ Try again',
     error_prefix:'Error', error_retry_job:'Failed to restart job',
     detail_loading:'Loading details...', detail_refresh:'↺ Refresh',
+    list_info_prefix:'Last', list_info_suffix:'records loaded',
+    cfg_copy_token:'Copy token',
   }
 };
 
@@ -486,31 +573,73 @@ function t(key) {
   return i18nStrings[key] ?? FALLBACK[currentLang]?.[key] ?? key;
 }
 
+// Load a .js file dynamically — works on file:// AND http://
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    // Remove previous script for same src to allow reload
+    const existing = document.querySelector(`script[data-i18n-src="${src}"]`);
+    if (existing) existing.remove();
+    const s = document.createElement('script');
+    s.src = src + '?_=' + Date.now(); // prevent cache
+    s.setAttribute('data-i18n-src', src);
+    s.onload  = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
 async function loadLanguage(code) {
+  // 1. Try .js file (works on file:// and http://)
+  try {
+    await loadScript(`i18n/${code}.js`);
+    if (window.GL_I18N?.[code]) {
+      i18nStrings = window.GL_I18N[code];
+      currentLang = code;
+      localStorage.setItem('gl_lang', code);
+      document.documentElement.lang = code;
+      return;
+    }
+  } catch {}
+
+  // 2. Try .json via fetch (http:// only)
   try {
     const res = await fetch(`i18n/${code}.json`);
-    if (!res.ok) throw new Error('not found');
+    if (!res.ok) throw new Error();
     i18nStrings = await res.json();
-  } catch {
-    // Fallback to embedded strings (works with file://)
-    i18nStrings = FALLBACK[code] || FALLBACK['pt'];
-  }
+    currentLang = code;
+    localStorage.setItem('gl_lang', code);
+    document.documentElement.lang = code;
+    return;
+  } catch {}
+
+  // 3. Embedded fallback
+  i18nStrings = FALLBACK[code] || FALLBACK['pt'];
   currentLang = code;
   localStorage.setItem('gl_lang', code);
   document.documentElement.lang = code;
 }
 
 async function loadAvailableLangs() {
+  // 1. Try .js file
+  try {
+    await loadScript('i18n/languages.js');
+    if (window.GL_LANGS?.length) { availableLangs = window.GL_LANGS; return; }
+  } catch {}
+
+  // 2. Try .json via fetch
   try {
     const res = await fetch('i18n/languages.json');
     if (!res.ok) throw new Error();
     availableLangs = await res.json();
-  } catch {
-    availableLangs = [
-      { code: 'pt', label: 'PT', name: 'Português' },
-      { code: 'en', label: 'EN', name: 'English' },
-    ];
-  }
+    return;
+  } catch {}
+
+  // 3. Derive from embedded FALLBACK keys
+  availableLangs = Object.keys(FALLBACK).map(code => ({
+    code,
+    label: code.toUpperCase(),
+    name: ({ pt:'Português', en:'English', fr:'Français' })[code] || code,
+  }));
 }
 
 function renderLangSwitcher() {
@@ -550,6 +679,7 @@ let config        = { url: 'https://gitlab.com', projects: [] };
 let currentProjIdx = null;
 let currentDetail  = null;
 let jobPollers     = {};
+let perPage        = Math.max(1, parseInt(localStorage.getItem('gl_pp') || '10', 10) || 10);
 
 // ── Config ────────────────────────────────────────────────────────────────────
 function loadConfig() {
@@ -589,7 +719,10 @@ function addProjectRow(p = {}) {
       </div>
       <div>
         <label>${t('cfg_project_token')}</label>
-        <input type="password" placeholder="glpat-xxxx" value="${escHtml(p.token || '')}">
+        <div class="token-wrapper">
+          <input type="password" placeholder="glpat-xxxx" value="${escHtml(p.token || '')}">
+          <button class="token-copy-btn" type="button" onclick="copyToken(this)" title="${t('cfg_copy_token')}">📋</button>
+        </div>
       </div>
       <button class="config-project-remove" onclick="removeProjectRow('cfgRow_${id}')" title="${t('cfg_remove_title')}">✕</button>
     </div>
@@ -599,6 +732,28 @@ function addProjectRow(p = {}) {
 
 function removeProjectRow(id) {
   const el = document.getElementById(id); if (el) el.remove();
+}
+
+function copyToken(btn) {
+  const input = btn.previousElementSibling; // the password input
+  const val   = input.value;
+  if (!val) return;
+  const ok = () => {
+    const prev = btn.textContent;
+    btn.textContent = '✓'; btn.style.color = '#3fb950'; btn.style.borderColor = '#3fb950';
+    setTimeout(() => { btn.textContent = prev; btn.style.cssText = ''; }, 1600);
+  };
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(val).then(ok).catch(() => fallbackCopy(input, ok));
+  } else {
+    fallbackCopy(input, ok);
+  }
+}
+function fallbackCopy(input, cb) {
+  const prev = input.type;
+  input.type = 'text'; input.select();
+  try { document.execCommand('copy'); cb(); } catch {}
+  input.type = prev;
 }
 
 function saveConfig() {
@@ -765,10 +920,17 @@ async function loadProjectCommits(idx, btn) {
   else     { el.innerHTML = `<div class="empty-state"><span class="spinner"></span> ${t('loading')}</div>`; }
 
   try {
-    const commits = await glFetch(idx, '/repository/commits', { per_page: 10 });
+    const commits = await glFetch(idx, '/repository/commits', { per_page: perPage });
     if (!commits.length) { el.innerHTML = `<div class="empty-state">${t('no_commits')}</div>`; return; }
 
-    el.innerHTML = commits.map(c => `
+    const infoBar = `<div class="list-info-bar">
+      ${t('list_info_prefix')}
+      <input type="number" class="perpage-input" min="1" value="${perPage}"
+        onchange="changePerPage(this, ${idx})" onclick="event.stopPropagation()">
+      ${t('list_info_suffix')}
+    </div>`;
+
+    el.innerHTML = infoBar + commits.map(c => `
       <div class="commit-item">
         <div class="commit-top"><span class="commit-sha">${c.short_id}</span></div>
         <div class="commit-msg" title="${escHtml(c.title)}">${escHtml(c.title)}</div>
@@ -785,14 +947,16 @@ async function loadProjectCommits(idx, btn) {
 }
 
 // ── Pipelines ─────────────────────────────────────────────────────────────────
-async function loadProjectPipelines(idx, btn) {
+// silent=true → background auto-refresh; no loading indicator shown
+async function loadProjectPipelines(idx, btn, silent = false) {
   const el       = document.getElementById('pane_pipelines');
   const statusEl = document.getElementById('projStatusBadge');
 
   if (btn) { btn.disabled = true; btn.textContent = t('updating'); }
+  else if (!silent) { el.innerHTML = `<div class="empty-state"><span class="spinner"></span> ${t('loading')}</div>`; }
 
   try {
-    const pipelines = await glFetch(idx, '/pipelines', { per_page: 10 });
+    const pipelines = await glFetch(idx, '/pipelines', { per_page: perPage });
     if (!pipelines.length) { el.innerHTML = `<div class="empty-state">${t('no_pipelines')}</div>`; return; }
 
     const latest = pipelines[0];
@@ -804,7 +968,14 @@ async function loadProjectPipelines(idx, btn) {
     const hEl = document.getElementById(`homeStatus_${idx}`);
     if (hEl) { hEl.className = badgeCls(latest.status); hEl.textContent = latest.status; }
 
-    el.innerHTML = pipelines.map(p => {
+    const infoBar = `<div class="list-info-bar">
+      ${t('list_info_prefix')}
+      <input type="number" class="perpage-input" min="1" value="${perPage}"
+        onchange="changePerPage(this, ${idx})" onclick="event.stopPropagation()">
+      ${t('list_info_suffix')}
+    </div>`;
+
+    el.innerHTML = infoBar + pipelines.map(p => {
       const createdStr  = relTime(p.created_at);
       const updatedStr  = p.updated_at ? relTime(p.updated_at) : null;
       const showUpdated = updatedStr && updatedStr !== createdStr;
@@ -824,11 +995,20 @@ async function loadProjectPipelines(idx, btn) {
     }).join('') + `<button class="load-more-btn" onclick="loadProjectPipelines(${idx}, this)">${t('btn_update')}</button>`;
 
   } catch(e) {
-    if (!btn) el.innerHTML = `<div class="empty-state" style="color:#f85149">${t('error_prefix')}: ${escHtml(e.message)}</div>
-      <button class="load-more-btn" onclick="loadProjectPipelines(${idx}, this)">${t('btn_retry_load')}</button>`;
+    el.innerHTML = `<div class="empty-state" style="color:#f85149">${t('error_prefix')}: ${escHtml(e.message)}</div>
+      <button class="load-more-btn" onclick="loadProjectPipelines(${idx})">${t('btn_retry_load')}</button>`;
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = t('btn_update'); }
   }
+}
+
+function changePerPage(input, idx) {
+  let v = parseInt(input.value, 10);
+  if (!v || v < 1) { v = 10; input.value = 10; }
+  perPage = v;
+  localStorage.setItem('gl_pp', v);
+  loadProjectCommits(idx);
+  loadProjectPipelines(idx);
 }
 
 // ── Pipeline detail ───────────────────────────────────────────────────────────
@@ -966,7 +1146,7 @@ function startJobPoller(projIdx, jobId) {
             logEl.innerHTML = ansiToHtml(raw); loadedLogs.add(jobId);
           } catch {}
         }
-        loadProjectPipelines(projIdx);
+        loadProjectPipelines(projIdx, null, true); // silent update after job completes
       }
     } catch {}
   }, 4000);
@@ -987,7 +1167,7 @@ async function retryJob(event, projIdx, jobId) {
     if (logEl && logEl.classList.contains('open'))
       logEl.innerHTML = `<span class="log-loading"><span class="spinner"></span> ${t('log_restarted')}</span>`;
     startJobPoller(projIdx, jobId);
-    loadProjectPipelines(projIdx);
+    loadProjectPipelines(projIdx, null, true); // silent — poller will do a real update when done
   } catch(e) {
     btn.disabled = false; btn.classList.remove('retrying');
     btn.textContent = '✗ ' + t('error_prefix');
@@ -1010,11 +1190,17 @@ function badgeCls(status) {
 function relTime(iso) {
   if (!iso) return '—';
   const diff = Date.now() - new Date(iso), m = Math.floor(diff / 60000);
-  if (m < 1) return currentLang === 'en' ? 'just now' : 'agora';
-  if (m < 60) return currentLang === 'en' ? `${m}m ago` : `${m}m atrás`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return currentLang === 'en' ? `${h}h ago` : `${h}h atrás`;
-  return currentLang === 'en' ? `${Math.floor(h/24)}d ago` : `${Math.floor(h/24)}d atrás`;
+  const now = { pt:'agora',       en:'just now',   fr:"à l'instant", es:'ahora' };
+  const min = { pt:`${m}m atrás`, en:`${m}m ago`,  fr:`il y a ${m}m`, es:`hace ${m}m` };
+  const h   = Math.floor(m / 60);
+  const hrs = { pt:`${h}h atrás`, en:`${h}h ago`,  fr:`il y a ${h}h`, es:`hace ${h}h` };
+  const d   = Math.floor(h / 24);
+  const day = { pt:`${d}d atrás`, en:`${d}d ago`,  fr:`il y a ${d}j`, es:`hace ${d}d` };
+  const l   = currentLang in now ? currentLang : 'en';
+  if (m < 1)  return now[l];
+  if (m < 60) return min[l];
+  if (h < 24) return hrs[l];
+  return day[l];
 }
 function fmtDate(iso) {
   if (!iso) return '—';
@@ -1040,7 +1226,7 @@ function ansiToHtml(text) {
 
 // ── Auto-refresh ──────────────────────────────────────────────────────────────
 setInterval(() => {
-  if (currentProjIdx !== null) loadProjectPipelines(currentProjIdx, null);
+  if (currentProjIdx !== null) loadProjectPipelines(currentProjIdx, null, true); // silent background refresh
   else if (config.projects?.length) refreshHome();
 }, 30000);
 
