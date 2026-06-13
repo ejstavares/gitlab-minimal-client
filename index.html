@@ -1,374 +1,43 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt" data-theme="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GitLab - Minimal Dashboard</title>
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #0d1117;
-  color: #e6edf3;
-  min-height: 100vh;
-}
-
-/* ── Header ── */
-header {
-  background: #161b22;
-  border-bottom: 1px solid #30363d;
-  padding: 0 24px;
-  height: 52px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  position: sticky;
-  top: 0;
-  z-index: 40;
-}
-.header-logo { color: #fc6d26; flex-shrink: 0; }
-.breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 14px; }
-.breadcrumb-home { color: #e6edf3; font-weight: 600; cursor: pointer; }
-.breadcrumb-home:hover { color: #fc6d26; }
-.breadcrumb-sep { color: #484f58; }
-.breadcrumb-project { color: #8b949e; font-weight: 500; }
-.header-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
-
-/* Language switcher */
-.lang-switcher {
-  display: flex;
-  background: #0d1117;
-  border: 1px solid #30363d;
-  border-radius: 6px;
-  overflow: hidden;
-}
-.lang-btn {
-  background: none; border: none; color: #8b949e;
-  font-size: 12px; font-weight: 600; padding: 4px 10px;
-  cursor: pointer; letter-spacing: .03em;
-}
-.lang-btn:hover { color: #e6edf3; background: #21262d; }
-.lang-btn.active { background: #fc6d26; color: #fff; }
-
-/* ── Buttons ── */
-.btn {
-  padding: 6px 14px; border-radius: 6px; font-size: 13px;
-  cursor: pointer; border: none; font-weight: 500;
-  display: inline-flex; align-items: center; gap: 5px;
-}
-.btn-primary { background: #fc6d26; color: #fff; }
-.btn-primary:hover { background: #e8621f; }
-.btn-ghost { background: #21262d; border: 1px solid #30363d; color: #e6edf3; }
-.btn-ghost:hover { background: #30363d; }
-.btn-sm { padding: 4px 10px; font-size: 12px; }
-.btn:disabled { opacity: .45; cursor: not-allowed; }
-
-/* ── Modal ── */
-.modal-overlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,.65); z-index: 100;
-  align-items: flex-start; justify-content: center;
-  padding-top: 60px; overflow-y: auto;
-}
-.modal-overlay.open { display: flex; }
-.modal {
-  background: #161b22; border: 1px solid #30363d;
-  border-radius: 10px; padding: 24px;
-  width: 580px; max-width: 96vw; margin-bottom: 40px;
-}
-.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-.modal-header h2 { font-size: 16px; }
-.modal-close { background: none; border: none; color: #8b949e; cursor: pointer; font-size: 18px; padding: 2px 6px; }
-.modal-close:hover { color: #e6edf3; }
-
-.field { margin-bottom: 14px; }
-label { display: block; font-size: 12px; color: #8b949e; margin-bottom: 4px; }
-input[type=text], input[type=password], input[type=url] {
-  width: 100%; background: #0d1117; border: 1px solid #30363d;
-  color: #e6edf3; padding: 7px 10px; border-radius: 6px; font-size: 13px;
-}
-input:focus { outline: none; border-color: #fc6d26; }
-
-.section-divider {
-  font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
-  color: #8b949e; margin: 18px 0 10px;
-  padding-bottom: 6px; border-bottom: 1px solid #30363d;
-  display: flex; align-items: center; justify-content: space-between;
-}
-
-.config-project-list { display: flex; flex-direction: column; gap: 8px; }
-.config-project-item {
-  background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 12px;
-}
-.config-project-row { display: grid; grid-template-columns: 1fr 120px 1fr auto; gap: 8px; align-items: end; }
-.config-project-remove {
-  background: none; border: 1px solid #30363d; color: #8b949e;
-  border-radius: 6px; cursor: pointer; padding: 6px 9px; font-size: 14px;
-  height: 32px; align-self: end;
-}
-.config-project-remove:hover { border-color: #f85149; color: #f85149; }
-
-.modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #30363d; }
-
-/* ── Screens ── */
-.screen { display: none; }
-.screen.active { display: block; }
-
-.main { padding: 28px; max-width: 1100px; margin: 0 auto; }
-
-/* ── Home ── */
-.home-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-.home-title { font-size: 20px; font-weight: 600; }
-.home-subtitle { font-size: 13px; color: #8b949e; margin-top: 2px; }
-
-.projects-list { display: flex; flex-direction: column; gap: 10px; }
-
-.project-list-card {
-  background: #161b22; border: 1px solid #30363d; border-radius: 10px;
-  padding: 18px 22px; display: flex; align-items: center; gap: 16px;
-  cursor: pointer; transition: border-color .15s, background .15s;
-}
-.project-list-card:hover { border-color: #fc6d26; background: #1c2128; }
-
-.project-avatar {
-  width: 40px; height: 40px; border-radius: 8px;
-  background: linear-gradient(135deg, #fc6d26, #e8421f);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 16px; font-weight: 700; color: #fff; flex-shrink: 0;
-}
-.project-list-info { flex: 1; min-width: 0; }
-.project-list-name { font-size: 15px; font-weight: 600; }
-.project-list-id { font-size: 11px; color: #8b949e; margin-top: 1px; }
-
-.project-list-meta { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-.project-last-pipeline { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
-.pipeline-label { font-size: 11px; color: #8b949e; }
-.chevron { color: #484f58; font-size: 18px; flex-shrink: 0; }
-
-/* ── Badges ── */
-.badge { font-size: 11px; padding: 2px 9px; border-radius: 20px; font-weight: 600; }
-.badge-success  { background: #1f3a1f; color: #3fb950; }
-.badge-failed   { background: #3a1f1f; color: #f85149; }
-.badge-running  { background: #1f2d3a; color: #58a6ff; }
-.badge-pending  { background: #2d2a1f; color: #d29922; }
-.badge-canceled { background: #21262d; color: #8b949e; }
-.badge-skipped  { background: #21262d; color: #8b949e; }
-
-.project-header-status { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
-.status-ok      { background: #1f3a1f; color: #3fb950; }
-.status-fail    { background: #3a1f1f; color: #f85149; }
-.status-running { background: #1f2d3a; color: #58a6ff; }
-.status-unknown { background: #21262d; color: #8b949e; }
-
-/* ── Project screen ── */
-.project-screen-header {
-  background: #161b22; border-bottom: 1px solid #30363d;
-  padding: 16px 28px; display: flex; align-items: center; gap: 14px;
-}
-.project-screen-avatar {
-  width: 44px; height: 44px; border-radius: 8px;
-  background: linear-gradient(135deg, #fc6d26, #e8421f);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px; font-weight: 700; color: #fff; flex-shrink: 0;
-}
-.project-screen-name { font-size: 17px; font-weight: 600; }
-.project-screen-id   { font-size: 12px; color: #8b949e; margin-top: 2px; }
-.project-screen-actions { margin-left: auto; display: flex; gap: 8px; }
-
-.tabs-bar {
-  display: flex; border-bottom: 1px solid #30363d;
-  padding: 0 28px; background: #161b22;
-}
-.tab {
-  padding: 11px 16px; font-size: 13px; cursor: pointer;
-  color: #8b949e; border-bottom: 2px solid transparent;
-  margin-bottom: -1px; font-weight: 500;
-}
-.tab:hover { color: #e6edf3; }
-.tab.active { color: #e6edf3; border-bottom-color: #fc6d26; }
-
-.tab-pane { display: none; padding: 20px 28px; }
-.tab-pane.active { display: block; }
-
-/* ── Commits ── */
-.commit-item {
-  background: #161b22; border: 1px solid #30363d; border-radius: 8px;
-  padding: 12px 16px; margin-bottom: 8px;
-}
-.commit-top { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
-.commit-sha { font-family: monospace; font-size: 11px; color: #58a6ff; background: #1f2d3a; padding: 2px 7px; border-radius: 4px; }
-.commit-msg { font-size: 13px; font-weight: 500; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.commit-meta { font-size: 11px; color: #8b949e; }
-
-/* ── Pipelines ── */
-.pipeline-item {
-  background: #161b22; border: 1px solid #30363d; border-radius: 8px;
-  padding: 13px 16px; margin-bottom: 8px; cursor: pointer; transition: border-color .15s;
-}
-.pipeline-item:hover { border-color: #fc6d26; }
-.pipeline-row { display: flex; align-items: center; gap: 10px; }
-.pipeline-id { font-size: 12px; color: #8b949e; font-family: monospace; min-width: 58px; }
-.pipeline-ref { font-size: 11px; background: #1f2d3a; color: #58a6ff; padding: 2px 8px; border-radius: 20px; }
-.pipeline-sha { font-size: 11px; font-family: monospace; color: #8b949e; }
-.pipeline-times { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
-.pipeline-time-row { font-size: 11px; color: #8b949e; }
-.pipeline-time-updated { color: #58a6ff; }
-
-/* ── Pipeline detail panel ── */
-.overlay-bg {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,.35); z-index: 49;
-}
-.overlay-bg.open { display: block; }
-
-.detail-panel {
-  display: none; position: fixed; top: 0; right: 0;
-  width: 720px; max-width: 96vw; height: 100vh;
-  background: #161b22; border-left: 1px solid #30363d;
-  z-index: 50; flex-direction: column; overflow: hidden;
-}
-.detail-panel.open { display: flex; }
-
-.detail-header {
-  background: #21262d; padding: 14px 20px;
-  border-bottom: 1px solid #30363d;
-  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
-}
-.detail-title { font-size: 14px; font-weight: 600; }
-.detail-close { background: none; border: none; color: #8b949e; cursor: pointer; font-size: 18px; padding: 2px 6px; }
-.detail-close:hover { color: #e6edf3; }
-.detail-body { flex: 1; overflow-y: auto; padding: 20px; }
-
-/* ── Jobs ── */
-.pipeline-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-.info-box { background: #0d1117; border: 1px solid #21262d; border-radius: 6px; padding: 10px 14px; }
-.info-box .info-label { font-size: 11px; color: #8b949e; margin-bottom: 2px; }
-.info-box .info-value { font-size: 13px; font-weight: 500; }
-
-.stage-header {
-  font-size: 11px; color: #8b949e; text-transform: uppercase;
-  letter-spacing: .06em; padding: 6px 0;
-  border-bottom: 1px solid #21262d; margin-bottom: 4px;
-  display: flex; align-items: center; gap: 8px;
-}
-.stage-count { font-size: 10px; background: #21262d; padding: 1px 7px; border-radius: 20px; text-transform: none; letter-spacing: 0; }
-
-.job-item { background: #0d1117; border: 1px solid #21262d; border-radius: 6px; overflow: hidden; margin-bottom: 5px; }
-.job-item.job-retried { opacity: .72; }
-.job-header { display: flex; align-items: center; gap: 8px; padding: 9px 12px; }
-.job-header:hover { background: #0f1419; }
-
-.job-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
-.job-name  { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.job-id-tag { font-size: 11px; color: #8b949e; font-family: monospace; margin-top: 1px; }
-.retried-tag { background: #2d2a1f; color: #d29922; padding: 1px 5px; border-radius: 3px; font-style: italic; font-family: sans-serif; }
-.job-duration { font-size: 11px; color: #8b949e; min-width: 48px; text-align: right; }
-.job-time     { font-size: 11px; color: #8b949e; min-width: 72px; text-align: right; }
-
-.job-expand-btn, .job-retry-btn {
-  background: none; border: 1px solid #30363d; color: #8b949e;
-  font-size: 11px; padding: 3px 8px; border-radius: 4px; cursor: pointer; white-space: nowrap;
-}
-.job-expand-btn:hover { border-color: #58a6ff; color: #58a6ff; }
-.job-retry-btn:hover  { border-color: #3fb950; color: #3fb950; }
-.job-retry-btn:disabled { opacity: .4; cursor: not-allowed; }
-.job-retry-btn.retrying { border-color: #fc6d26; color: #fc6d26; }
-
-.job-log {
-  display: none; background: #0a0e13; border-top: 1px solid #21262d;
-  padding: 12px 14px; font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 11.5px; line-height: 1.65; color: #e6edf3;
-  white-space: pre-wrap; word-break: break-all; max-height: 420px; overflow-y: auto;
-}
-.job-log.open { display: block; }
-.log-loading  { color: #8b949e; font-style: italic; }
-
-/* ANSI */
-.ansi-red { color: #f85149; } .ansi-green { color: #3fb950; }
-.ansi-yellow { color: #d29922; } .ansi-blue { color: #58a6ff; }
-.ansi-magenta { color: #bc8cff; } .ansi-cyan { color: #39c5cf; }
-.ansi-bold { font-weight: 700; } .ansi-dim { color: #8b949e; }
-
-/* ── Utilities ── */
-.empty-state { text-align: center; padding: 48px 20px; color: #8b949e; font-size: 13px; }
-.empty-state .icon { font-size: 36px; margin-bottom: 10px; }
-
-.load-more-btn {
-  width: 100%; padding: 9px; margin-top: 8px;
-  background: #21262d; border: 1px dashed #30363d;
-  color: #8b949e; border-radius: 6px; cursor: pointer; font-size: 12px;
-}
-.load-more-btn:hover { border-color: #fc6d26; color: #fc6d26; }
-
-/* ── Token copy ── */
-.token-wrapper { display: flex; gap: 4px; }
-.token-wrapper input { flex: 1; min-width: 0; }
-.token-copy-btn {
-  background: none; border: 1px solid #30363d; color: #8b949e;
-  border-radius: 6px; cursor: pointer; padding: 0 9px; font-size: 14px;
-  height: 32px; flex-shrink: 0; transition: color .15s, border-color .15s;
-}
-.token-copy-btn:hover { border-color: #3fb950; color: #3fb950; }
-
-/* ── List info bar ── */
-.list-info-bar {
-  display: flex; align-items: center; gap: 6px;
-  font-size: 12px; color: #8b949e;
-  margin-bottom: 10px; padding: 7px 12px;
-  background: #0d1117; border: 1px solid #21262d; border-radius: 6px;
-}
-.perpage-input {
-  width: 50px; text-align: center;
-  background: #161b22; border: 1px solid #30363d;
-  color: #e6edf3; border-radius: 4px;
-  font-size: 12px; padding: 2px 4px;
-}
-.perpage-input:focus { outline: none; border-color: #fc6d26; }
-
-.section-label { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #8b949e; margin-bottom: 10px; }
-
-.spinner {
-  display: inline-block; width: 14px; height: 14px;
-  border: 2px solid #30363d; border-top-color: #fc6d26;
-  border-radius: 50%; animation: spin .7s linear infinite;
-  vertical-align: middle; margin-right: 5px;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitLab - Minimal Dashboard</title>
+  <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
 
 <!-- ═══════════════ HEADER ═══════════════ -->
 <header>
-  <svg class="header-logo" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+  <svg class="header-logo" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
     <path d="M22.65 14.39L12 22.13 1.35 14.39a.84.84 0 0 1-.3-.94l1.22-3.78 2.44-7.51A.42.42 0 0 1 4.82 2a.43.43 0 0 1 .58 0 .42.42 0 0 1 .11.18l2.44 7.49h8.1l2.44-7.51A.42.42 0 0 1 18.6 2a.43.43 0 0 1 .58 0 .42.42 0 0 1 .11.18l2.44 7.51L23 13.45a.84.84 0 0 1-.35.94z"/>
   </svg>
-  <div class="breadcrumb">
+
+  <nav class="breadcrumb" aria-label="Navigation">
     <span class="breadcrumb-home" onclick="goHome()" data-i18n="app_title">GitLab - Minimal Dashboard</span>
-    <span class="breadcrumb-sep" id="breadSep" style="display:none">/</span>
+    <span class="breadcrumb-sep" id="breadSep" style="display:none" aria-hidden="true">/</span>
     <span class="breadcrumb-project" id="breadProject"></span>
-  </div>
+  </nav>
+
   <div class="header-actions">
-    <div class="lang-switcher" id="langSwitcher"></div>
+    <div class="lang-switcher" id="langSwitcher" role="group" aria-label="Language"></div>
+    <button class="btn btn-ghost btn-sm icon-btn" id="themeBtn"
+      onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme">☀️</button>
     <button class="btn btn-ghost btn-sm" onclick="openConfig()" data-i18n="btn_projects">⚙️ Projetos</button>
   </div>
 </header>
 
 <!-- ═══════════════ CONFIG MODAL ═══════════════ -->
-<div class="modal-overlay" id="configModal">
+<div class="modal-overlay" id="configModal" role="dialog" aria-modal="true" aria-labelledby="cfgModalTitle">
   <div class="modal">
     <div class="modal-header">
-      <h2 data-i18n="cfg_title">Configuração</h2>
-      <button class="modal-close" onclick="closeConfig()">✕</button>
+      <h2 id="cfgModalTitle" data-i18n="cfg_title">Configuração</h2>
+      <button class="modal-close" onclick="closeConfig()" aria-label="Close">✕</button>
     </div>
 
     <div class="field">
-      <label data-i18n="cfg_base_url">GitLab Base URL</label>
+      <label for="cfgUrl" data-i18n="cfg_base_url">GitLab Base URL</label>
       <input type="url" id="cfgUrl" placeholder="https://gitlab.com">
     </div>
 
@@ -387,858 +56,87 @@ input:focus { outline: none; border-color: #fc6d26; }
 </div>
 
 <!-- ═══════════════ HOME SCREEN ═══════════════ -->
-<div class="screen active" id="screenHome">
+<main class="screen active" id="screenHome">
   <div class="main">
     <div id="homeEmpty" class="empty-state" style="margin-top:40px">
       <div class="icon">🔧</div>
       <div data-i18n="home_no_projects">Nenhum projeto configurado</div>
       <button class="btn btn-primary" style="margin-top:14px" onclick="openConfig()" data-i18n="home_configure_now">Configurar agora</button>
     </div>
+
     <div id="homeContent" style="display:none">
       <div class="home-header">
         <div>
           <div class="home-title" data-i18n="home_title">Projetos</div>
           <div class="home-subtitle" id="homeSubtitle"></div>
         </div>
-        <button class="btn btn-ghost btn-sm" onclick="refreshHome()" data-i18n="home_refresh_all">↺ Atualizar todos</button>
+        <button class="btn btn-ghost btn-sm" onclick="refreshHome(this)" data-i18n="home_refresh_all">↺ Atualizar todos</button>
       </div>
       <div class="projects-list" id="projectsList"></div>
     </div>
   </div>
-</div>
+</main>
 
 <!-- ═══════════════ PROJECT SCREEN ═══════════════ -->
-<div class="screen" id="screenProject">
+<section class="screen" id="screenProject" aria-label="Project detail">
   <div class="project-screen-header">
-    <div class="project-screen-avatar" id="projAvatar"></div>
-    <div>
+    <div class="project-screen-avatar" id="projAvatar" aria-hidden="true"></div>
+    <div class="project-screen-info">
       <div class="project-screen-name" id="projName"></div>
-      <div class="project-screen-id" id="projMeta"></div>
+      <div class="project-screen-id"   id="projMeta"></div>
     </div>
     <div class="project-screen-actions">
       <span class="project-header-status status-unknown" id="projStatusBadge">—</span>
       <button class="btn btn-ghost btn-sm" onclick="refreshProject()" data-i18n="btn_refresh">↺ Refresh</button>
-      <button class="btn btn-ghost btn-sm" onclick="goHome()" data-i18n="btn_back">← Voltar</button>
+      <button class="btn btn-ghost btn-sm" onclick="goHome()"          data-i18n="btn_back">← Voltar</button>
     </div>
   </div>
-  <div class="tabs-bar">
-    <div class="tab active" onclick="switchProjTab('commits', this)" data-i18n="tab_commits">Commits</div>
-    <div class="tab" onclick="switchProjTab('pipelines', this)" data-i18n="tab_pipelines">Pipelines</div>
+
+  <div class="tabs-bar" role="tablist">
+    <div class="tab active" role="tab" onclick="switchProjTab('commits',   this)" data-i18n="tab_commits">Commits</div>
+    <div class="tab"        role="tab" onclick="switchProjTab('pipelines', this)" data-i18n="tab_pipelines">Pipelines</div>
   </div>
-  <div class="tab-pane active" id="pane_commits"></div>
-  <div class="tab-pane" id="pane_pipelines"></div>
-</div>
+
+  <div class="tab-pane active" id="pane_commits"   role="tabpanel"></div>
+  <div class="tab-pane"        id="pane_pipelines" role="tabpanel"></div>
+</section>
 
 <!-- ═══════════════ DETAIL PANEL ═══════════════ -->
-<div class="overlay-bg" id="overlayBg" onclick="closeDetail()"></div>
-<div class="detail-panel" id="detailPanel">
+<div class="overlay-bg" id="overlayBg" onclick="closeDetail()" aria-hidden="true"></div>
+
+<aside class="detail-panel" id="detailPanel" aria-label="Pipeline detail">
   <div class="detail-header">
-    <span>🔀</span>
+    <span aria-hidden="true">🔀</span>
     <span class="detail-title" id="detailTitle">Pipeline</span>
     <span id="detailBadge"></span>
-    <button class="btn btn-ghost btn-sm" id="detailRefreshBtn" onclick="refreshDetail()" style="margin-left:auto;margin-right:6px" data-i18n="detail_refresh">↺ Refresh</button>
-    <button class="detail-close" onclick="closeDetail()">✕</button>
+    <button class="btn btn-ghost btn-sm" id="detailRefreshBtn"
+      onclick="refreshDetail()" style="margin-left:auto;margin-right:6px"
+      data-i18n="detail_refresh">↺ Refresh</button>
+    <button class="detail-close" onclick="closeDetail()" aria-label="Close">✕</button>
   </div>
   <div class="detail-body" id="detailBody"></div>
-</div>
+</aside>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer class="app-footer">
+  <span>© <span id="footerYear"></span> <a href="https://github.com/ejstavares" target="_blank" rel="noopener">ejstavares</a></span>
+  <span class="footer-sep">·</span>
+  <a href="https://github.com/ejstavares/gitlab-minimal-client" target="_blank" rel="noopener">gitlab-minimal-client</a>
+</footer>
+
+<!-- ═══════════════ SCRIPTS ═══════════════ -->
+<!-- Load order matters: state first, app last -->
+<script src="js/state.js"></script>
+<script src="js/helpers.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/api.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/config.js"></script>
+<script src="js/home.js"></script>
+<script src="js/project.js"></script>
+<script src="js/detail.js"></script>
+<script src="js/app.js"></script>
+<script>document.getElementById('footerYear').textContent = new Date().getFullYear();</script>
 
-<!-- ═══════════════ SCRIPT ═══════════════ -->
-<script>
-// ── i18n ─────────────────────────────────────────────────────────────────────
-let i18nStrings  = {};
-let availableLangs = [];
-let currentLang  = localStorage.getItem('gl_lang') || 'pt';
-
-// Fallback strings (embedded, work with file://)
-const FALLBACK = {
-  pt: {
-    app_title:'GitLab - Minimal Dashboard', btn_projects:'⚙️ Projetos',
-    cfg_title:'Configuração', cfg_base_url:'GitLab Base URL',
-    cfg_projects_section:'Projetos', cfg_add_project:'+ Adicionar projeto',
-    cfg_project_name:'Nome do projeto', cfg_project_id:'Project ID',
-    cfg_project_token:'Private Token', cfg_cancel:'Cancelar', cfg_save:'Salvar',
-    cfg_remove_title:'Remover',
-    home_no_projects:'Nenhum projeto configurado', home_configure_now:'Configurar agora',
-    home_title:'Projetos', home_subtitle:'projeto(s)', home_refresh_all:'↺ Atualizar todos',
-    home_last_pipeline:'Último pipeline',
-    tab_commits:'Commits', tab_pipelines:'Pipelines',
-    btn_refresh:'↺ Refresh', btn_back:'← Voltar', proj_id_label:'ID',
-    pipeline_ref:'Branch / Ref', pipeline_duration:'Duração total',
-    pipeline_started:'Iniciado', pipeline_finished:'Finalizado',
-    pipeline_jobs_count:'job(s) · por stage', pipeline_stage_jobs:'job(s)',
-    time_created:'🕐 Criado', time_updated:'🔄 Atualizado',
-    job_log_btn:'📄 Log', job_run_again:'▶ Run again', job_running:'⏳ Running...',
-    job_starting:'⏳ Iniciando...', job_no_retry:'Status não permite retry',
-    job_retry_title:'Executar novamente',
-    log_placeholder:'Clique em "Log" para carregar...', log_loading:'Carregando log...',
-    log_reloading:'Recarregando log final...', log_restarted:'Job reiniciado, aguardando log...',
-    loading:'Carregando...', updating:'⏳ Atualizando...',
-    no_commits:'Nenhum commit encontrado', no_pipelines:'Nenhum pipeline encontrado',
-    btn_update:'↺ Atualizar', btn_retry_load:'↺ Tentar novamente',
-    error_prefix:'Erro', error_retry_job:'Erro ao reiniciar job',
-    detail_loading:'Carregando detalhes...', detail_refresh:'↺ Refresh',
-    list_info_prefix:'Últimos', list_info_suffix:'registos carregados',
-    cfg_copy_token:'Copiar token',
-  },
-  fr: {
-    app_title:'GitLab - Minimal Dashboard', btn_projects:'⚙️ Projets',
-    cfg_title:'Configuration', cfg_base_url:'URL de base GitLab',
-    cfg_projects_section:'Projets', cfg_add_project:'+ Ajouter un projet',
-    cfg_project_name:'Nom du projet', cfg_project_id:'ID du projet',
-    cfg_project_token:'Jeton privé', cfg_cancel:'Annuler', cfg_save:'Enregistrer',
-    cfg_remove_title:'Supprimer',
-    home_no_projects:'Aucun projet configuré', home_configure_now:'Configurer maintenant',
-    home_title:'Projets', home_subtitle:'projet(s)', home_refresh_all:'↺ Actualiser tout',
-    home_last_pipeline:'Dernier pipeline',
-    tab_commits:'Commits', tab_pipelines:'Pipelines',
-    btn_refresh:'↺ Actualiser', btn_back:'← Retour', proj_id_label:'ID',
-    pipeline_ref:'Branche / Ref', pipeline_duration:'Durée totale',
-    pipeline_started:'Démarré', pipeline_finished:'Terminé',
-    pipeline_jobs_count:'job(s) · par étape', pipeline_stage_jobs:'job(s)',
-    time_created:'🕐 Créé', time_updated:'🔄 Mis à jour',
-    job_log_btn:'📄 Journal', job_run_again:'▶ Relancer', job_running:'⏳ En cours...',
-    job_starting:'⏳ Démarrage...', job_no_retry:'Le statut ne permet pas de relancer',
-    job_retry_title:'Relancer',
-    log_placeholder:'Cliquez sur "Journal" pour charger...', log_loading:'Chargement du journal...',
-    log_reloading:'Rechargement du journal final...', log_restarted:'Job relancé, en attente du journal...',
-    loading:'Chargement...', updating:'⏳ Actualisation...',
-    no_commits:'Aucun commit trouvé', no_pipelines:'Aucun pipeline trouvé',
-    btn_update:'↺ Actualiser', btn_retry_load:'↺ Réessayer',
-    error_prefix:'Erreur', error_retry_job:'Échec du redémarrage du job',
-    detail_loading:'Chargement des détails...', detail_refresh:'↺ Actualiser',
-    list_info_prefix:'Derniers', list_info_suffix:'enregistrements chargés',
-    cfg_copy_token:'Copier le jeton',
-  },
-  es: {
-    app_title:'GitLab - Minimal Dashboard', btn_projects:'⚙️ Proyectos',
-    cfg_title:'Configuración', cfg_base_url:'URL base de GitLab',
-    cfg_projects_section:'Proyectos', cfg_add_project:'+ Añadir proyecto',
-    cfg_project_name:'Nombre del proyecto', cfg_project_id:'ID del proyecto',
-    cfg_project_token:'Token privado', cfg_cancel:'Cancelar', cfg_save:'Guardar',
-    cfg_remove_title:'Eliminar',
-    home_no_projects:'Ningún proyecto configurado', home_configure_now:'Configurar ahora',
-    home_title:'Proyectos', home_subtitle:'proyecto(s)', home_refresh_all:'↺ Actualizar todos',
-    home_last_pipeline:'Último pipeline',
-    tab_commits:'Commits', tab_pipelines:'Pipelines',
-    btn_refresh:'↺ Actualizar', btn_back:'← Volver', proj_id_label:'ID',
-    pipeline_ref:'Rama / Ref', pipeline_duration:'Duración total',
-    pipeline_started:'Iniciado', pipeline_finished:'Finalizado',
-    pipeline_jobs_count:'job(s) · por etapa', pipeline_stage_jobs:'job(s)',
-    time_created:'🕐 Creado', time_updated:'🔄 Actualizado',
-    job_log_btn:'📄 Log', job_run_again:'▶ Ejecutar de nuevo', job_running:'⏳ Ejecutando...',
-    job_starting:'⏳ Iniciando...', job_no_retry:'El estado no permite reintentar',
-    job_retry_title:'Ejecutar de nuevo',
-    log_placeholder:'Haz clic en "Log" para cargar...', log_loading:'Cargando log...',
-    log_reloading:'Recargando log final...', log_restarted:'Job reiniciado, esperando log...',
-    loading:'Cargando...', updating:'⏳ Actualizando...',
-    no_commits:'No se encontraron commits', no_pipelines:'No se encontraron pipelines',
-    btn_update:'↺ Actualizar', btn_retry_load:'↺ Reintentar',
-    error_prefix:'Error', error_retry_job:'Error al reiniciar el job',
-    detail_loading:'Cargando detalles...', detail_refresh:'↺ Actualizar',
-    list_info_prefix:'Últimos', list_info_suffix:'registros cargados',
-    cfg_copy_token:'Copiar token',
-  },
-  en: {
-    app_title:'GitLab - Minimal Dashboard', btn_projects:'⚙️ Projects',
-    cfg_title:'Settings', cfg_base_url:'GitLab Base URL',
-    cfg_projects_section:'Projects', cfg_add_project:'+ Add project',
-    cfg_project_name:'Project name', cfg_project_id:'Project ID',
-    cfg_project_token:'Private Token', cfg_cancel:'Cancel', cfg_save:'Save',
-    cfg_remove_title:'Remove',
-    home_no_projects:'No projects configured', home_configure_now:'Configure now',
-    home_title:'Projects', home_subtitle:'project(s)', home_refresh_all:'↺ Refresh all',
-    home_last_pipeline:'Last pipeline',
-    tab_commits:'Commits', tab_pipelines:'Pipelines',
-    btn_refresh:'↺ Refresh', btn_back:'← Back', proj_id_label:'ID',
-    pipeline_ref:'Branch / Ref', pipeline_duration:'Total duration',
-    pipeline_started:'Started', pipeline_finished:'Finished',
-    pipeline_jobs_count:'job(s) · by stage', pipeline_stage_jobs:'job(s)',
-    time_created:'🕐 Created', time_updated:'🔄 Updated',
-    job_log_btn:'📄 Log', job_run_again:'▶ Run again', job_running:'⏳ Running...',
-    job_starting:'⏳ Starting...', job_no_retry:'Status does not allow retry',
-    job_retry_title:'Run again',
-    log_placeholder:'Click "Log" to load...', log_loading:'Loading log...',
-    log_reloading:'Reloading final log...', log_restarted:'Job restarted, waiting for log...',
-    loading:'Loading...', updating:'⏳ Updating...',
-    no_commits:'No commits found', no_pipelines:'No pipelines found',
-    btn_update:'↺ Refresh', btn_retry_load:'↺ Try again',
-    error_prefix:'Error', error_retry_job:'Failed to restart job',
-    detail_loading:'Loading details...', detail_refresh:'↺ Refresh',
-    list_info_prefix:'Last', list_info_suffix:'records loaded',
-    cfg_copy_token:'Copy token',
-  }
-};
-
-function t(key) {
-  return i18nStrings[key] ?? FALLBACK[currentLang]?.[key] ?? key;
-}
-
-// Load a .js file dynamically — works on file:// AND http://
-function loadScript(src) {
-  return new Promise((resolve, reject) => {
-    // Remove previous script for same src to allow reload
-    const existing = document.querySelector(`script[data-i18n-src="${src}"]`);
-    if (existing) existing.remove();
-    const s = document.createElement('script');
-    s.src = src + '?_=' + Date.now(); // prevent cache
-    s.setAttribute('data-i18n-src', src);
-    s.onload  = resolve;
-    s.onerror = reject;
-    document.head.appendChild(s);
-  });
-}
-
-async function loadLanguage(code) {
-  // 1. Try .js file (works on file:// and http://)
-  try {
-    await loadScript(`i18n/${code}.js`);
-    if (window.GL_I18N?.[code]) {
-      i18nStrings = window.GL_I18N[code];
-      currentLang = code;
-      localStorage.setItem('gl_lang', code);
-      document.documentElement.lang = code;
-      return;
-    }
-  } catch {}
-
-  // 2. Try .json via fetch (http:// only)
-  try {
-    const res = await fetch(`i18n/${code}.json`);
-    if (!res.ok) throw new Error();
-    i18nStrings = await res.json();
-    currentLang = code;
-    localStorage.setItem('gl_lang', code);
-    document.documentElement.lang = code;
-    return;
-  } catch {}
-
-  // 3. Embedded fallback
-  i18nStrings = FALLBACK[code] || FALLBACK['pt'];
-  currentLang = code;
-  localStorage.setItem('gl_lang', code);
-  document.documentElement.lang = code;
-}
-
-async function loadAvailableLangs() {
-  // 1. Try .js file
-  try {
-    await loadScript('i18n/languages.js');
-    if (window.GL_LANGS?.length) { availableLangs = window.GL_LANGS; return; }
-  } catch {}
-
-  // 2. Try .json via fetch
-  try {
-    const res = await fetch('i18n/languages.json');
-    if (!res.ok) throw new Error();
-    availableLangs = await res.json();
-    return;
-  } catch {}
-
-  // 3. Derive from embedded FALLBACK keys
-  availableLangs = Object.keys(FALLBACK).map(code => ({
-    code,
-    label: code.toUpperCase(),
-    name: ({ pt:'Português', en:'English', fr:'Français' })[code] || code,
-  }));
-}
-
-function renderLangSwitcher() {
-  const el = document.getElementById('langSwitcher');
-  el.innerHTML = availableLangs.map(l => `
-    <button class="lang-btn ${l.code === currentLang ? 'active' : ''}"
-      onclick="switchLang('${l.code}')" title="${escHtml(l.name)}">${escHtml(l.label)}</button>
-  `).join('');
-}
-
-async function switchLang(code) {
-  await loadLanguage(code);
-  applyTranslations();
-  renderLangSwitcher();
-  // Re-render current screen content
-  if (document.getElementById('screenHome').classList.contains('active')) {
-    initHome();
-  } else if (currentProjIdx !== null) {
-    openProject(currentProjIdx);
-  }
-}
-
-// Apply translations to static [data-i18n] elements
-function applyTranslations() {
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    el.textContent = t(key);
-  });
-  // Also update placeholders for inputs
-  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
-    el.placeholder = t(el.getAttribute('data-i18n-ph'));
-  });
-}
-
-// ── State ─────────────────────────────────────────────────────────────────────
-let config        = { url: 'https://gitlab.com', projects: [] };
-let currentProjIdx = null;
-let currentDetail  = null;
-let jobPollers     = {};
-let perPage        = Math.max(1, parseInt(localStorage.getItem('gl_pp') || '10', 10) || 10);
-
-// ── Config ────────────────────────────────────────────────────────────────────
-function loadConfig() {
-  try { const s = localStorage.getItem('gl_cfg_v2'); if (s) config = JSON.parse(s); } catch {}
-}
-
-function openConfig() {
-  loadConfig();
-  document.getElementById('cfgUrl').value = config.url || 'https://gitlab.com';
-  const list = document.getElementById('cfgProjectList');
-  list.innerHTML = '';
-  (config.projects || []).forEach(p => addProjectRow(p));
-  // Apply translations to modal labels
-  applyTranslations();
-  document.getElementById('configModal').classList.add('open');
-}
-
-function closeConfig() {
-  document.getElementById('configModal').classList.remove('open');
-}
-
-let rowIdx = 0;
-function addProjectRow(p = {}) {
-  const id = rowIdx++;
-  const row = document.createElement('div');
-  row.className = 'config-project-item';
-  row.id = `cfgRow_${id}`;
-  row.innerHTML = `
-    <div class="config-project-row">
-      <div>
-        <label>${t('cfg_project_name')}</label>
-        <input type="text" placeholder="my-project" value="${escHtml(p.name || '')}">
-      </div>
-      <div>
-        <label>${t('cfg_project_id')}</label>
-        <input type="text" placeholder="123456" value="${escHtml(p.id || '')}">
-      </div>
-      <div>
-        <label>${t('cfg_project_token')}</label>
-        <div class="token-wrapper">
-          <input type="password" placeholder="glpat-xxxx" value="${escHtml(p.token || '')}">
-          <button class="token-copy-btn" type="button" onclick="copyToken(this)" title="${t('cfg_copy_token')}">📋</button>
-        </div>
-      </div>
-      <button class="config-project-remove" onclick="removeProjectRow('cfgRow_${id}')" title="${t('cfg_remove_title')}">✕</button>
-    </div>
-  `;
-  document.getElementById('cfgProjectList').appendChild(row);
-}
-
-function removeProjectRow(id) {
-  const el = document.getElementById(id); if (el) el.remove();
-}
-
-function copyToken(btn) {
-  const input = btn.previousElementSibling; // the password input
-  const val   = input.value;
-  if (!val) return;
-  const ok = () => {
-    const prev = btn.textContent;
-    btn.textContent = '✓'; btn.style.color = '#3fb950'; btn.style.borderColor = '#3fb950';
-    setTimeout(() => { btn.textContent = prev; btn.style.cssText = ''; }, 1600);
-  };
-  if (navigator.clipboard?.writeText) {
-    navigator.clipboard.writeText(val).then(ok).catch(() => fallbackCopy(input, ok));
-  } else {
-    fallbackCopy(input, ok);
-  }
-}
-function fallbackCopy(input, cb) {
-  const prev = input.type;
-  input.type = 'text'; input.select();
-  try { document.execCommand('copy'); cb(); } catch {}
-  input.type = prev;
-}
-
-function saveConfig() {
-  const url  = document.getElementById('cfgUrl').value.replace(/\/$/, '').trim();
-  const rows = document.querySelectorAll('.config-project-item');
-  const projects = [];
-  rows.forEach(row => {
-    const inputs = row.querySelectorAll('input');
-    const name = inputs[0].value.trim(), pid = inputs[1].value.trim(), token = inputs[2].value.trim();
-    if (name && pid && token) projects.push({ name, id: pid, token });
-  });
-  config = { url, projects };
-  localStorage.setItem('gl_cfg_v2', JSON.stringify(config));
-  closeConfig();
-  initHome();
-}
-
-// ── Navigation ────────────────────────────────────────────────────────────────
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-
-function goHome() {
-  stopAllPollers(); currentProjIdx = null; currentDetail = null;
-  document.getElementById('breadSep').style.display   = 'none';
-  document.getElementById('breadProject').textContent = '';
-  showScreen('screenHome');
-  closeDetail();
-}
-
-function openProject(idx) {
-  currentProjIdx = idx;
-  const proj = config.projects[idx];
-  document.getElementById('breadSep').style.display   = '';
-  document.getElementById('breadProject').textContent = proj.name;
-  document.getElementById('projAvatar').textContent   = proj.name[0].toUpperCase();
-  document.getElementById('projName').textContent     = proj.name;
-  document.getElementById('projMeta').textContent     = `${t('proj_id_label')}: ${proj.id} · ${config.url}`;
-  document.getElementById('projStatusBadge').className   = 'project-header-status status-unknown';
-  document.getElementById('projStatusBadge').textContent = '—';
-
-  // Reset tabs
-  document.querySelectorAll('#screenProject .tab').forEach((tab, i) => {
-    tab.classList.toggle('active', i === 0);
-  });
-  document.querySelectorAll('#screenProject .tab-pane').forEach((pane, i) => {
-    pane.classList.toggle('active', i === 0);
-  });
-  document.getElementById('pane_commits').innerHTML   = `<div class="empty-state"><span class="spinner"></span> ${t('loading')}</div>`;
-  document.getElementById('pane_pipelines').innerHTML = `<div class="empty-state"><span class="spinner"></span> ${t('loading')}</div>`;
-
-  showScreen('screenProject');
-  loadProjectCommits(idx);
-  loadProjectPipelines(idx);
-}
-
-function switchProjTab(name, el) {
-  document.querySelectorAll('#screenProject .tab-pane').forEach(p => p.classList.remove('active'));
-  document.getElementById(`pane_${name}`).classList.add('active');
-  document.querySelectorAll('#screenProject .tab').forEach(t => t.classList.remove('active'));
-  if (el) el.classList.add('active');
-}
-
-function refreshProject() {
-  if (currentProjIdx === null) return;
-  loadProjectCommits(currentProjIdx);
-  loadProjectPipelines(currentProjIdx);
-}
-
-// ── Home ──────────────────────────────────────────────────────────────────────
-function initHome() {
-  loadConfig();
-  if (!config.projects || !config.projects.length) {
-    document.getElementById('homeEmpty').style.display   = 'block';
-    document.getElementById('homeContent').style.display = 'none';
-    applyTranslations();
-    return;
-  }
-  document.getElementById('homeEmpty').style.display   = 'none';
-  document.getElementById('homeContent').style.display = 'block';
-  document.getElementById('homeSubtitle').textContent  = `${config.projects.length} ${t('home_subtitle')} · ${config.url}`;
-
-  document.getElementById('projectsList').innerHTML = config.projects.map((p, i) => `
-    <div class="project-list-card" onclick="openProject(${i})">
-      <div class="project-avatar">${p.name[0].toUpperCase()}</div>
-      <div class="project-list-info">
-        <div class="project-list-name">${escHtml(p.name)}</div>
-        <div class="project-list-id">${t('proj_id_label')}: ${escHtml(p.id)}</div>
-      </div>
-      <div class="project-list-meta">
-        <div class="project-last-pipeline">
-          <span class="pipeline-label">${t('home_last_pipeline')}</span>
-          <span id="homeStatus_${i}" class="badge badge-canceled">...</span>
-        </div>
-        <div id="homeTime_${i}" style="font-size:11px;color:#8b949e;text-align:right"></div>
-      </div>
-      <div class="chevron">›</div>
-    </div>
-  `).join('');
-
-  applyTranslations();
-  config.projects.forEach((_, i) => loadHomePipelineStatus(i));
-}
-
-async function loadHomePipelineStatus(idx) {
-  try {
-    const pipelines = await glFetch(idx, '/pipelines', { per_page: 1 });
-    if (!pipelines.length) return;
-    const p  = pipelines[0];
-    const el = document.getElementById(`homeStatus_${idx}`);
-    const te = document.getElementById(`homeTime_${idx}`);
-    if (el) { el.className = badgeCls(p.status); el.textContent = p.status; }
-    if (te) {
-      const createdStr = relTime(p.created_at);
-      const updatedStr = p.updated_at ? relTime(p.updated_at) : null;
-      const showUpdated = updatedStr && updatedStr !== createdStr;
-      te.innerHTML = `<span>${t('time_created')}: ${createdStr}</span>`
-        + (showUpdated ? `<br><span style="color:#58a6ff">${t('time_updated')}: ${updatedStr}</span>` : '');
-    }
-  } catch {}
-}
-
-function refreshHome() {
-  config.projects.forEach((_, i) => loadHomePipelineStatus(i));
-}
-
-// ── GitLab API ────────────────────────────────────────────────────────────────
-async function glFetch(projIdx, path, params = {}) {
-  const proj = config.projects[projIdx];
-  const base = config.url || 'https://gitlab.com';
-  const qs   = new URLSearchParams({ per_page: 10, ...params }).toString();
-  const res  = await fetch(`${base}/api/v4/projects/${proj.id}${path}?${qs}`, {
-    headers: { 'PRIVATE-TOKEN': proj.token }
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status} – ${res.statusText}`);
-  return res.json();
-}
-
-async function glPost(projIdx, path) {
-  const proj = config.projects[projIdx];
-  const base = config.url || 'https://gitlab.com';
-  const res  = await fetch(`${base}/api/v4/projects/${proj.id}${path}`, {
-    method: 'POST', headers: { 'PRIVATE-TOKEN': proj.token }
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status} – ${res.statusText}`);
-  return res.json();
-}
-
-async function glFetchRaw(projIdx, path) {
-  const proj = config.projects[projIdx];
-  const base = config.url || 'https://gitlab.com';
-  const res  = await fetch(`${base}/api/v4/projects/${proj.id}${path}`, {
-    headers: { 'PRIVATE-TOKEN': proj.token }
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.text();
-}
-
-// ── Commits ───────────────────────────────────────────────────────────────────
-async function loadProjectCommits(idx, btn) {
-  const el = document.getElementById('pane_commits');
-  if (btn) { btn.disabled = true; btn.textContent = t('updating'); }
-  else     { el.innerHTML = `<div class="empty-state"><span class="spinner"></span> ${t('loading')}</div>`; }
-
-  try {
-    const commits = await glFetch(idx, '/repository/commits', { per_page: perPage });
-    if (!commits.length) { el.innerHTML = `<div class="empty-state">${t('no_commits')}</div>`; return; }
-
-    const infoBar = `<div class="list-info-bar">
-      ${t('list_info_prefix')}
-      <input type="number" class="perpage-input" min="1" value="${perPage}"
-        onchange="changePerPage(this, ${idx})" onclick="event.stopPropagation()">
-      ${t('list_info_suffix')}
-    </div>`;
-
-    el.innerHTML = infoBar + commits.map(c => `
-      <div class="commit-item">
-        <div class="commit-top"><span class="commit-sha">${c.short_id}</span></div>
-        <div class="commit-msg" title="${escHtml(c.title)}">${escHtml(c.title)}</div>
-        <div class="commit-meta">${escHtml(c.author_name)} · ${relTime(c.created_at)}</div>
-      </div>
-    `).join('') + `<button class="load-more-btn" onclick="loadProjectCommits(${idx}, this)">${t('btn_update')}</button>`;
-
-  } catch(e) {
-    el.innerHTML = `<div class="empty-state" style="color:#f85149">${t('error_prefix')}: ${escHtml(e.message)}</div>
-      <button class="load-more-btn" onclick="loadProjectCommits(${idx}, this)">${t('btn_retry_load')}</button>`;
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = t('btn_update'); }
-  }
-}
-
-// ── Pipelines ─────────────────────────────────────────────────────────────────
-// silent=true → background auto-refresh; no loading indicator shown
-async function loadProjectPipelines(idx, btn, silent = false) {
-  const el       = document.getElementById('pane_pipelines');
-  const statusEl = document.getElementById('projStatusBadge');
-
-  if (btn) { btn.disabled = true; btn.textContent = t('updating'); }
-  else if (!silent) { el.innerHTML = `<div class="empty-state"><span class="spinner"></span> ${t('loading')}</div>`; }
-
-  try {
-    const pipelines = await glFetch(idx, '/pipelines', { per_page: perPage });
-    if (!pipelines.length) { el.innerHTML = `<div class="empty-state">${t('no_pipelines')}</div>`; return; }
-
-    const latest = pipelines[0];
-    const sMap = { success:'status-ok', failed:'status-fail', running:'status-running' };
-    if (statusEl) {
-      statusEl.className   = `project-header-status ${sMap[latest.status] || 'status-unknown'}`;
-      statusEl.textContent = latest.status;
-    }
-    const hEl = document.getElementById(`homeStatus_${idx}`);
-    if (hEl) { hEl.className = badgeCls(latest.status); hEl.textContent = latest.status; }
-
-    const infoBar = `<div class="list-info-bar">
-      ${t('list_info_prefix')}
-      <input type="number" class="perpage-input" min="1" value="${perPage}"
-        onchange="changePerPage(this, ${idx})" onclick="event.stopPropagation()">
-      ${t('list_info_suffix')}
-    </div>`;
-
-    el.innerHTML = infoBar + pipelines.map(p => {
-      const createdStr  = relTime(p.created_at);
-      const updatedStr  = p.updated_at ? relTime(p.updated_at) : null;
-      const showUpdated = updatedStr && updatedStr !== createdStr;
-      return `
-      <div class="pipeline-item" onclick="openPipelineDetail(${idx}, ${p.id})">
-        <div class="pipeline-row">
-          <span class="pipeline-id">#${p.id}</span>
-          <span class="${badgeCls(p.status)}">${p.status}</span>
-          <span class="pipeline-ref">${escHtml(p.ref)}</span>
-          <span class="pipeline-sha">${escHtml(p.sha ? p.sha.slice(0,8) : '')}</span>
-          <div class="pipeline-times">
-            <span class="pipeline-time-row">${t('time_created')}: ${createdStr}</span>
-            ${showUpdated ? `<span class="pipeline-time-row pipeline-time-updated">${t('time_updated')}: ${updatedStr}</span>` : ''}
-          </div>
-        </div>
-      </div>`;
-    }).join('') + `<button class="load-more-btn" onclick="loadProjectPipelines(${idx}, this)">${t('btn_update')}</button>`;
-
-  } catch(e) {
-    el.innerHTML = `<div class="empty-state" style="color:#f85149">${t('error_prefix')}: ${escHtml(e.message)}</div>
-      <button class="load-more-btn" onclick="loadProjectPipelines(${idx})">${t('btn_retry_load')}</button>`;
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = t('btn_update'); }
-  }
-}
-
-function changePerPage(input, idx) {
-  let v = parseInt(input.value, 10);
-  if (!v || v < 1) { v = 10; input.value = 10; }
-  perPage = v;
-  localStorage.setItem('gl_pp', v);
-  loadProjectCommits(idx);
-  loadProjectPipelines(idx);
-}
-
-// ── Pipeline detail ───────────────────────────────────────────────────────────
-function refreshDetail() {
-  if (!currentDetail) return;
-  const btn = document.getElementById('detailRefreshBtn');
-  btn.disabled = true; btn.textContent = '⏳ ...';
-  openPipelineDetail(currentDetail.projIdx, currentDetail.pipelineId)
-    .finally(() => { btn.disabled = false; btn.textContent = t('detail_refresh'); });
-}
-
-async function openPipelineDetail(projIdx, pipelineId) {
-  currentDetail = { projIdx, pipelineId };
-  stopAllPollers();
-
-  document.getElementById('detailTitle').textContent = `Pipeline #${pipelineId}`;
-  document.getElementById('detailBadge').innerHTML   = '';
-  document.getElementById('detailBody').innerHTML    = `<div class="empty-state"><span class="spinner"></span> ${t('detail_loading')}</div>`;
-  document.getElementById('detailPanel').classList.add('open');
-  document.getElementById('overlayBg').classList.add('open');
-
-  try {
-    const [pipeline, jobs] = await Promise.all([
-      glFetch(projIdx, `/pipelines/${pipelineId}`),
-      glFetch(projIdx, `/pipelines/${pipelineId}/jobs`, { per_page: 100, include_retried: true }),
-    ]);
-
-    document.getElementById('detailBadge').innerHTML =
-      `<span class="${badgeCls(pipeline.status)}">${pipeline.status}</span>`;
-
-    const stageOrder = [];
-    jobs.forEach(j => { if (!stageOrder.includes(j.stage)) stageOrder.push(j.stage); });
-
-    let html = `
-      <div class="pipeline-info-grid">
-        <div class="info-box"><div class="info-label">${t('pipeline_ref')}</div><div class="info-value">${escHtml(pipeline.ref)}</div></div>
-        <div class="info-box"><div class="info-label">${t('pipeline_duration')}</div><div class="info-value">${pipeline.duration ? formatDuration(pipeline.duration) : '—'}</div></div>
-        <div class="info-box"><div class="info-label">${t('pipeline_started')}</div><div class="info-value">${fmtDate(pipeline.created_at)}</div></div>
-        <div class="info-box"><div class="info-label">${t('pipeline_finished')}</div><div class="info-value">${pipeline.finished_at ? fmtDate(pipeline.finished_at) : '—'}</div></div>
-      </div>
-      <div class="section-label">${jobs.length} ${t('pipeline_jobs_count')}</div>
-    `;
-
-    stageOrder.forEach(stage => {
-      const sJobs = jobs.filter(j => j.stage === stage);
-      html += `<div style="margin-bottom:16px">
-        <div class="stage-header">${escHtml(stage)}<span class="stage-count">${sJobs.length} ${t('pipeline_stage_jobs')}</span></div>`;
-
-      sJobs.forEach(job => {
-        const canRetry  = ['failed','canceled','success','skipped'].includes(job.status);
-        const isRetried = job.retried === true;
-        html += `
-          <div class="job-item${isRetried ? ' job-retried' : ''}" id="job_${job.id}">
-            <div class="job-header">
-              <span class="${badgeCls(job.status)}" id="badge_${job.id}">${job.status}</span>
-              <div class="job-info">
-                <span class="job-name">${escHtml(job.name)}</span>
-                <span class="job-id-tag">#${job.id}${isRetried ? ` <span class="retried-tag">retried</span>` : ''}</span>
-              </div>
-              <span class="job-duration">${job.duration ? formatDuration(job.duration) : '—'}</span>
-              <span class="job-time">${relTime(job.created_at)}</span>
-              <button class="job-expand-btn" onclick="toggleLog(${projIdx}, ${job.id})">${t('job_log_btn')}</button>
-              <button class="job-retry-btn" id="retry_${job.id}"
-                onclick="retryJob(event, ${projIdx}, ${job.id})"
-                ${canRetry ? '' : 'disabled'}
-                title="${canRetry ? t('job_retry_title') : t('job_no_retry')}"
-              >${t('job_run_again')}</button>
-            </div>
-            <pre class="job-log" id="log_${job.id}"><span class="log-loading">${t('log_placeholder')}</span></pre>
-          </div>`;
-      });
-      html += `</div>`;
-    });
-
-    document.getElementById('detailBody').innerHTML = html;
-  } catch(e) {
-    document.getElementById('detailBody').innerHTML =
-      `<div class="empty-state" style="color:#f85149">${t('error_prefix')}: ${escHtml(e.message)}</div>`;
-  }
-}
-
-function closeDetail() {
-  stopAllPollers(); currentDetail = null;
-  document.getElementById('detailPanel').classList.remove('open');
-  document.getElementById('overlayBg').classList.remove('open');
-}
-
-// ── Log ───────────────────────────────────────────────────────────────────────
-let loadedLogs = new Set();
-
-async function toggleLog(projIdx, jobId) {
-  const logEl  = document.getElementById(`log_${jobId}`);
-  const isOpen = logEl.classList.contains('open');
-  if (isOpen) { logEl.classList.remove('open'); return; }
-  logEl.classList.add('open');
-  if (!loadedLogs.has(jobId)) {
-    logEl.innerHTML = `<span class="log-loading"><span class="spinner"></span> ${t('log_loading')}</span>`;
-    try {
-      const raw = await glFetchRaw(projIdx, `/jobs/${jobId}/trace`);
-      logEl.innerHTML = ansiToHtml(raw);
-      loadedLogs.add(jobId);
-    } catch(e) {
-      logEl.innerHTML = `<span style="color:#f85149">${t('error_prefix')}: ${escHtml(e.message)}</span>`;
-    }
-  }
-}
-
-// ── Retry & polling ───────────────────────────────────────────────────────────
-function stopAllPollers() {
-  Object.values(jobPollers).forEach(clearInterval); jobPollers = {};
-}
-function stopJobPoller(jobId) {
-  if (jobPollers[jobId]) { clearInterval(jobPollers[jobId]); delete jobPollers[jobId]; }
-}
-
-function startJobPoller(projIdx, jobId) {
-  stopJobPoller(jobId);
-  const ACTIVE = ['running','pending','created','waiting_for_resource','preparing'];
-  jobPollers[jobId] = setInterval(async () => {
-    try {
-      const job     = await glFetch(projIdx, `/jobs/${jobId}`);
-      const badgeEl = document.getElementById(`badge_${jobId}`);
-      const btn     = document.getElementById(`retry_${jobId}`);
-      if (!badgeEl) { stopJobPoller(jobId); return; }
-      badgeEl.className = badgeCls(job.status); badgeEl.textContent = job.status;
-      if (!ACTIVE.includes(job.status)) {
-        stopJobPoller(jobId);
-        if (btn) { btn.disabled = false; btn.textContent = t('job_run_again'); btn.style.cssText = ''; }
-        const logEl = document.getElementById(`log_${jobId}`);
-        if (logEl && logEl.classList.contains('open')) {
-          loadedLogs.delete(jobId);
-          logEl.innerHTML = `<span class="log-loading"><span class="spinner"></span> ${t('log_reloading')}</span>`;
-          try {
-            const raw = await glFetchRaw(projIdx, `/jobs/${jobId}/trace`);
-            logEl.innerHTML = ansiToHtml(raw); loadedLogs.add(jobId);
-          } catch {}
-        }
-        loadProjectPipelines(projIdx, null, true); // silent update after job completes
-      }
-    } catch {}
-  }, 4000);
-}
-
-async function retryJob(event, projIdx, jobId) {
-  event.stopPropagation();
-  const btn     = document.getElementById(`retry_${jobId}`);
-  const badgeEl = document.getElementById(`badge_${jobId}`);
-  btn.disabled = true; btn.classList.add('retrying'); btn.textContent = t('job_starting');
-
-  try {
-    const newJob = await glPost(projIdx, `/jobs/${jobId}/retry`);
-    badgeEl.className = badgeCls(newJob.status); badgeEl.textContent = newJob.status;
-    btn.classList.remove('retrying'); btn.textContent = t('job_running');
-    loadedLogs.delete(jobId);
-    const logEl = document.getElementById(`log_${jobId}`);
-    if (logEl && logEl.classList.contains('open'))
-      logEl.innerHTML = `<span class="log-loading"><span class="spinner"></span> ${t('log_restarted')}</span>`;
-    startJobPoller(projIdx, jobId);
-    loadProjectPipelines(projIdx, null, true); // silent — poller will do a real update when done
-  } catch(e) {
-    btn.disabled = false; btn.classList.remove('retrying');
-    btn.textContent = '✗ ' + t('error_prefix');
-    btn.style.borderColor = '#f85149'; btn.style.color = '#f85149';
-    alert(`${t('error_retry_job')}: ${e.message}`);
-    setTimeout(() => { btn.textContent = t('job_run_again'); btn.style.cssText = ''; }, 3000);
-  }
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-function escHtml(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function badgeCls(status) {
-  return ({ success:'badge badge-success', failed:'badge badge-failed', running:'badge badge-running',
-    pending:'badge badge-pending', canceled:'badge badge-canceled', skipped:'badge badge-skipped' })[status]
-    || 'badge badge-canceled';
-}
-function relTime(iso) {
-  if (!iso) return '—';
-  const diff = Date.now() - new Date(iso), m = Math.floor(diff / 60000);
-  const now = { pt:'agora',       en:'just now',   fr:"à l'instant", es:'ahora' };
-  const min = { pt:`${m}m atrás`, en:`${m}m ago`,  fr:`il y a ${m}m`, es:`hace ${m}m` };
-  const h   = Math.floor(m / 60);
-  const hrs = { pt:`${h}h atrás`, en:`${h}h ago`,  fr:`il y a ${h}h`, es:`hace ${h}h` };
-  const d   = Math.floor(h / 24);
-  const day = { pt:`${d}d atrás`, en:`${d}d ago`,  fr:`il y a ${d}j`, es:`hace ${d}d` };
-  const l   = currentLang in now ? currentLang : 'en';
-  if (m < 1)  return now[l];
-  if (m < 60) return min[l];
-  if (h < 24) return hrs[l];
-  return day[l];
-}
-function fmtDate(iso) {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleString(currentLang === 'en' ? 'en-GB' : 'pt-BR', {
-    day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'
-  });
-}
-function formatDuration(secs) {
-  if (!secs) return '—';
-  const m = Math.floor(secs / 60), s = Math.round(secs % 60);
-  return m > 0 ? `${m}m ${s}s` : `${s}s`;
-}
-function ansiToHtml(text) {
-  return escHtml(text)
-    .replace(/\x1b\[0m/g,'</span>').replace(/\x1b\[1m/g,'<span class="ansi-bold">')
-    .replace(/\x1b\[2m/g,'<span class="ansi-dim">').replace(/\x1b\[31m/g,'<span class="ansi-red">')
-    .replace(/\x1b\[32m/g,'<span class="ansi-green">').replace(/\x1b\[33m/g,'<span class="ansi-yellow">')
-    .replace(/\x1b\[34m/g,'<span class="ansi-blue">').replace(/\x1b\[35m/g,'<span class="ansi-magenta">')
-    .replace(/\x1b\[36m/g,'<span class="ansi-cyan">').replace(/\x1b\[0;32m/g,'<span class="ansi-green">')
-    .replace(/\x1b\[0;31m/g,'<span class="ansi-red">').replace(/\x1b\[0;33m/g,'<span class="ansi-yellow">')
-    .replace(/\x1b\[[0-9;]*m/g,'');
-}
-
-// ── Auto-refresh ──────────────────────────────────────────────────────────────
-setInterval(() => {
-  if (currentProjIdx !== null) loadProjectPipelines(currentProjIdx, null, true); // silent background refresh
-  else if (config.projects?.length) refreshHome();
-}, 30000);
-
-// ── Boot ──────────────────────────────────────────────────────────────────────
-(async () => {
-  await loadAvailableLangs();
-  await loadLanguage(currentLang);
-  renderLangSwitcher();
-  applyTranslations();
-  loadConfig();
-  initHome();
-})();
-</script>
 </body>
 </html>
